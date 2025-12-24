@@ -1,0 +1,165 @@
+<Page x:Class="FactorApp.UI.Pages.ServicesPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+      mc:Ignorable="d"
+      d:DesignHeight="600"
+      d:DesignWidth="900"
+      FlowDirection="RightToLeft"
+      Title="مدیریت خدمات"
+      TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+      Background="{DynamicResource MaterialDesignPaper}"
+      TextElement.FontWeight="Regular"
+      TextElement.FontSize="13"
+      TextOptions.TextFormattingMode="Ideal"
+      FontFamily="{DynamicResource MaterialDesignFont}">
+
+    <materialDesign:DialogHost x:Name="ServiceDialog"
+                               Identifier="ServiceRootDialog"
+                               DialogTheme="Inherit">
+        <materialDesign:DialogHost.DialogContent>
+            <Grid Margin="20"
+                    Width="350">
+                <StackPanel>
+                    <TextBlock x:Name="TxtDialogTitle"
+                               Text="تعریف خدمت جدید"
+                               Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                               Margin="0,0,0,20"/>
+
+                    <TextBox x:Name="ServInputName"
+                             materialDesign:HintAssist.Hint="نام خدمت (مثلا: بنر ۱۳ انس)"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Margin="0,10"/>
+
+                    <ComboBox x:Name="ServInputCategory"
+                              materialDesign:HintAssist.Hint="دسته‌بندی"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                              Margin="0,10"
+                              IsEditable="True">
+                        <ComboBoxItem Content="بنر"/>
+                        <ComboBoxItem Content="فلکس"/>
+                        <ComboBoxItem Content="کارت ویزیت"/>
+                        <ComboBoxItem Content="تراکت"/>
+                        <ComboBoxItem Content="افست"/>
+                        <ComboBoxItem Content="طراحی"/>
+                        <ComboBoxItem Content="استیکر"/>
+                    </ComboBox>
+
+                    <TextBox x:Name="ServInputPrice"
+                             materialDesign:HintAssist.Hint="قیمت واحد (ریال)"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Margin="0,10"/>
+
+                    <ComboBox x:Name="ServInputMethod"
+                              materialDesign:HintAssist.Hint="روش محاسبه قیمت"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                              Margin="0,10">
+                        <ComboBoxItem Content="تعدادی (ساده - مثل کارت ویزیت)"
+                                Tag="0"/>
+                        <ComboBoxItem Content="متراژ (متر مربع - مثل بنر)"
+                                Tag="1"/>
+                    </ComboBox>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,20,0,0">
+                        <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                Content="انصراف"
+                                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"/>
+                        <Button Style="{StaticResource MaterialDesignRaisedButton}"
+                                Content="ذخیره اطلاعات"
+                                Click="BtnSaveService_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </materialDesign:DialogHost.DialogContent>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0"
+                    Margin="20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="TxtSearch"
+                         materialDesign:HintAssist.Hint="جستجو در خدمات..."
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Width="300"
+                         HorizontalAlignment="Left"
+                         TextChanged="TxtSearch_TextChanged"/>
+
+                <Button Grid.Column="1"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Click="BtnAdd_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Plus"
+                                Margin="0,0,10,0"/>
+                        <TextBlock Text="افزودن خدمت جدید"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <DataGrid Grid.Row="1"
+                      x:Name="DataGridServices"
+                      Margin="20"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      SelectionMode="Single"
+                      materialDesign:DataGridAssist.CellPadding="13 8 8 8"
+                      materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding Id}"
+                            Header="کد"
+                            Width="60"/>
+                    <DataGridTextColumn Binding="{Binding Name}"
+                            Header="نام خدمت"
+                            Width="2*"/>
+                    <DataGridTextColumn Binding="{Binding Category}"
+                            Header="دسته‌بندی"
+                            Width="1*"/>
+                    <DataGridTextColumn Binding="{Binding UnitPrice, StringFormat=N0}"
+                            Header="قیمت واحد"
+                            Width="1*"/>
+
+                    <DataGridTemplateColumn Header="نوع محاسبه"
+                            Width="1.5*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Method}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource MaterialDesignIconButton}"
+                                            ToolTip="ویرایش"
+                                            Click="BtnEdit_Click">
+                                        <materialDesign:PackIcon Kind="Pencil"
+                                                Foreground="Orange"/>
+                                    </Button>
+                                    <Button Style="{StaticResource MaterialDesignIconButton}"
+                                            ToolTip="حذف"
+                                            Click="BtnDelete_Click">
+                                        <materialDesign:PackIcon Kind="Delete"
+                                                Foreground="Red"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </materialDesign:DialogHost>
+</Page>
