@@ -182,9 +182,9 @@ namespace FactorApp.UI.Pages
             {
                 try
                 {
-                    if (System.IO.File.Exists("factor.db"))
+                    if (System.IO.File.Exists("FactorApp.db"))
                     {
-                        System.IO.File.Copy("factor.db", saveDialog.FileName, true);
+                        System.IO.File.Copy("FactorApp.db", saveDialog.FileName, true);
                         MessageBox.Show("پشتیبان‌گیری انجام شد.");
                     }
                     else

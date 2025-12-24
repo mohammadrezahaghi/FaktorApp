@@ -12,13 +12,11 @@ namespace FactorApp.UI.Data
         public DbSet<InvoiceItem> InvoiceItems { get; set; }
         public DbSet<User> Users { get; set; } // این خط را اضافه کنید
         public DbSet<StoreInfo> StoreInfos { get; set; }
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            // تنظیمات اتصال به دیتابیس
-            // از LocalDB استفاده می‌کنیم که همراه ویژوال استودیو نصب است و نیازی به نصب SQL Server سنگین نیست
-            // نام دیتابیس را PrintShopDb گذاشتم
-            optionsBuilder.UseSqlServer("Server=.\\SQLEXPRESS;Database=PrintShopDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true");
-        }
+     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+{
+    // دیتابیس به صورت یک فایل کنار برنامه ساخته می‌شود
+    optionsBuilder.UseSqlite("Data Source=FactorApp.db");
+}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
