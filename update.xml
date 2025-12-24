@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <item>
-    <version>1.0.0.0</version>
+    <version>1.2.0.0</version>
     <url>LINK_TO_SETUP_EXE</url>
     <changelog>https://github.com/YOUR_USER/YOUR_REPO/releases</changelog>
     <mandatory>false</mandatory>
