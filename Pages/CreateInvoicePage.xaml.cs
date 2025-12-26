@@ -34,11 +34,66 @@ namespace FactorApp.UI.Pages
 
         public CreateInvoicePage()
         {
-            InitializeComponent(); // اگر اینجا ارور دارد، حتما Rebuild کنید
+            InitializeComponent();
+
+            // تنظیم تاریخ فقط یک‌بار (زمانی که اولین بار صفحه ساخته می‌شود)
+            SetDateToToday();
+            // مقداردهی اولیه کانتکست (برای استفاده در دکمه ثبت نهایی)
             _context = new AppDbContext();
 
-            SetDateToToday();
-            LoadInitialData();
+            // اتصال به رویداد Loaded
+            // این رویداد هر بار که کاربر این صفحه را می‌بیند اجرا می‌شود
+            this.Loaded += CreateInvoicePage_Loaded;
+        }
+
+
+        // این متد هر بار که نویگیت کنید اجرا می‌شود
+        private void CreateInvoicePage_Loaded(object sender, RoutedEventArgs e)
+        {
+            // رفرش کردن لیست‌های کشویی (مشتری و کالا)
+            RefreshDropdownsPreservingSelection();
+        }
+
+        // متد اصلی برای بروزرسانی لیست‌ها بدون پراندن انتخاب کاربر
+        private void RefreshDropdownsPreservingSelection()
+        {
+            try
+            {
+                using (var tempContext = new AppDbContext())
+                {
+                    // --- بخش ۱: مشتریان (بدون تغییر) ---
+                    var selectedCustomerId = CmbCustomers.SelectedValue;
+                    var customers = tempContext.Customers.OrderBy(c => c.Name).ToList();
+                    CmbCustomers.ItemsSource = customers;
+
+                    if (selectedCustomerId != null)
+                    {
+                        CmbCustomers.SelectedValue = selectedCustomerId;
+                    }
+
+                    // --- بخش ۲: خدمات و کالاها (اصلاح شده طبق کد شما) ---
+                    // چک می‌کنیم که المان در صفحه لود شده باشد
+                    if (CmbServices != null)
+                    {
+                        var selectedServiceId = CmbServices.SelectedValue; // ذخیره انتخاب فعلی
+
+                        // دریافت لیست از جدول Services (نه Products)
+                        var services = tempContext.Services.OrderBy(s => s.Name).ToList();
+
+                        CmbServices.ItemsSource = services; // ریختن اطلاعات داخل کمبوباکس
+
+                        if (selectedServiceId != null)
+                        {
+                            // اگر قبلاً چیزی انتخاب شده بود، دوباره انتخابش کن
+                            CmbServices.SelectedValue = selectedServiceId;
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Windows.MessageBox.Show("خطا در بارگذاری لیست‌ها: " + ex.Message);
+            }
         }
 
         private void SetDateToToday()
@@ -320,71 +375,103 @@ namespace FactorApp.UI.Pages
             catch (Exception ex) { MessageBox.Show("خطا: " + ex.Message); }
         }
 
-        private async void BtnSaveInvoice_Click(object sender, RoutedEventArgs e)
+private async void BtnSaveInvoice_Click(object sender, RoutedEventArgs e)
+{
+    // 1. اعتبارسنجی اولیه
+    if (_invoiceItems.Count == 0 || CmbCustomers.SelectedValue == null)
+    {
+        MessageBox.Show("لطفا مشتری و اقلام فاکتور را مشخص کنید.");
+        return;
+    }
+
+    // گرفتن ID مشتری از کمبوباکس (چون آبجکت کامل ممکن است Detached باشد)
+    int customerId = (int)CmbCustomers.SelectedValue;
+
+    UpdateDateFromInput(TxtInvoiceDate.Text);
+    bool isPaid = TglIsPaid.IsChecked == true;
+    PaymentMethod method = isPaid ? (PaymentMethod)CmbPaymentMethod.SelectedItem : PaymentMethod.None;
+
+    try
+    {
+        // 2. ایجاد یک ارتباط جدید و تمیز با دیتابیس فقط برای ذخیره سازی
+        using (var db = new AppDbContext())
         {
-            if (_invoiceItems.Count == 0 || CmbCustomers.SelectedItem is not Customer selectedCustomer)
+            // بارگذاری مجدد مشتری از دیتابیس همین لحظه (جلوگیری از ارور Detached)
+            var customer = db.Customers.Find(customerId);
+            if (customer == null) throw new Exception("مشتری پیدا نشد.");
+
+            // 3. ساخت فاکتور
+            var newInvoice = new Invoice
             {
-                MessageBox.Show("اطلاعات ناقص است."); return;
+                Customer = customer, // اتصال به مشتری‌ای که همین الان از db گرفتیم
+                Date = _selectedDate, // یا TxtInvoiceDate.Text
+                InvoiceNumber = _selectedDate.ToString("yyyyMMdd") + "-" + DateTime.Now.ToString("HHmm"),
+                Status = InvoiceStatus.Pending,
+                FinalAmount = _invoiceItems.Sum(x => x.TotalPrice),
+                IsPaid = isPaid,
+                PaymentMethod = method,
+            };
+
+            // 4. آپدیت مانده حساب مشتری (اگر پرداخت نشده)
+            if (!isPaid)
+            {
+                customer.Balance += newInvoice.FinalAmount;
             }
-            UpdateDateFromInput(TxtInvoiceDate.Text);
 
-            bool isPaid = TglIsPaid.IsChecked == true;
-            PaymentMethod method = isPaid ? (PaymentMethod)CmbPaymentMethod.SelectedItem : PaymentMethod.None;
-
-            try
+            // 5. افزودن اقلام فاکتور
+            foreach (var item in _invoiceItems)
             {
-                var newInvoice = new Invoice
+                // نکته مهم: اگر در مدل InvoiceItem رابطه‌ای با سرویس دارید (مثلا ServiceId)
+                // باید اینجا هندل کنید. فرض می‌کنیم مقادیر را کپی می‌کنیم:
+                
+                var invoiceItem = new InvoiceItem
                 {
-                    Date = _selectedDate,
-                    CustomerId = selectedCustomer.Id,
-                    InvoiceNumber = _selectedDate.ToString("yyyyMMdd") + "-" + _selectedDate.ToString("HHmm"),
-                    Status = InvoiceStatus.Pending,
-                    FinalAmount = _invoiceItems.Sum(x => x.TotalPrice),
-                    IsPaid = isPaid,
-                    PaymentMethod = method
+                    Invoice = newInvoice,
+                    ServiceName = item.ServiceName,
+                    Length = item.Length,
+                    Width = item.Width,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    TotalPrice = item.TotalPrice // یا TotalPrice اگر نامش این است
                 };
+                
+                // اگر مدل شما ServiceId دارد، باید آن را هم ست کنید:
+                // invoiceItem.ServiceId = item.Service.Id; 
 
-                if (!isPaid)
-                {
-                    var customer = _context.Customers.Find(selectedCustomer.Id);
-                    if (customer != null) customer.Balance += newInvoice.FinalAmount;
-                }
-
-                foreach (var item in _invoiceItems)
-                {
-                    _context.InvoiceItems.Add(new InvoiceItem
-                    {
-                        Invoice = newInvoice,
-                        ServiceName = item.ServiceName,
-                        Length = item.Length,
-                        Width = item.Width,
-                        Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
-                        TotalPrice = item.TotalPrice
-                    });
-                }
-                _context.Invoices.Add(newInvoice);
-                _context.SaveChanges();
-
-                newInvoice.Customer = selectedCustomer;
-                newInvoice.Items = _invoiceItems;
-
-                var result = MessageBox.Show($"فاکتور ثبت شد.\nآیا چاپ شود؟", "موفق", MessageBoxButton.YesNo, MessageBoxImage.Information);
-                if (result == MessageBoxResult.Yes)
-                {
-                    var printer = new InvoicePrinter(newInvoice);
-                    printer.Print();
-                }
-
-                if (ChkSendWhatsapp.IsChecked == true)
-                {
-                    await SendToWhatsapp(newInvoice);
-                }
-
-                ResetForm();
+                db.InvoiceItems.Add(invoiceItem);
             }
-            catch (Exception ex) { MessageBox.Show("خطا: " + ex.Message); }
+
+            // 6. ذخیره نهایی
+            db.Invoices.Add(newInvoice);
+            db.SaveChanges(); // اینجا همه تغییرات (فاکتور، آیتم‌ها، مانده مشتری) با هم ذخیره می‌شوند
+
+            // --- عملیات بعد از ذخیره ---
+            
+            // آماده‌سازی آبجکت برای پرینت (چون دیتابیس بسته می‌شود، داده‌ها را ست می‌کنیم)
+            newInvoice.Customer = customer; 
+            newInvoice.Items = _invoiceItems; // فقط برای نمایش در پرینت
+
+            var result = MessageBox.Show($"فاکتور با موفقیت ثبت شد.\nآیا چاپ شود؟", "موفق", MessageBoxButton.YesNo, MessageBoxImage.Information);
+            
+            if (result == MessageBoxResult.Yes)
+            {
+                var printer = new InvoicePrinter(newInvoice);
+                printer.Print();
+            }
+
+            if (ChkSendWhatsapp.IsChecked == true)
+            {
+                await SendToWhatsapp(newInvoice);
+            }
+
+            ResetForm();
         }
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show("خطا در ثبت فاکتور: " + ex.Message + "\n" + ex.InnerException?.Message);
+    }
+}
 
         private async void BtnManualWhatsapp_Click(object sender, RoutedEventArgs e)
         {

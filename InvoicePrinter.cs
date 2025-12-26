@@ -30,6 +30,10 @@ namespace FactorApp.UI.Helpers
         private const double PageWidth = 794; // A5 Width (Landscape approx)
         private const double PageHeight = 560; // A5 Height
 
+        // تنظیمات اطلاعات کارت
+        private const string CardNumber = "6037 9971 9803 0505";
+        private const string CardHolder = "حسین کهنسال";
+
         public InvoicePrinter(Invoice invoice)
         {
             _invoice = invoice;
@@ -67,26 +71,21 @@ namespace FactorApp.UI.Helpers
             }
         }
 
-        // 2. ساخت عکس (خروجی برای کلیپ‌بورد و ذخیره)
+        // 2. ساخت عکس
         public RenderTargetBitmap GenerateImage()
         {
-            // ساخت داکیومنت
             FlowDocument doc = CreateDesign();
             doc.PageHeight = PageHeight;
             doc.PageWidth = PageWidth;
             doc.PagePadding = new Thickness(0);
             doc.ColumnWidth = PageWidth;
 
-            // آماده‌سازی صفحه‌بندی
             DocumentPaginator paginator = ((IDocumentPaginatorSource)doc).DocumentPaginator;
             paginator.PageSize = new Size(PageWidth, PageHeight);
 
-            // رندر کردن صفحه اول به عکس
             using (var page = paginator.GetPage(0))
             {
                 var visual = page.Visual;
-
-                // کیفیت عکس (1.5 برابر برای وضوح بهتر)
                 double scale = 1.5;
 
                 RenderTargetBitmap renderTarget = new RenderTargetBitmap(
@@ -101,7 +100,7 @@ namespace FactorApp.UI.Helpers
             }
         }
 
-        // 3. ذخیره عکس در فایل (Save As)
+        // 3. ذخیره عکس (Save As)
         public void SaveAsImage()
         {
             SaveFileDialog saveDialog = new SaveFileDialog
@@ -114,7 +113,7 @@ namespace FactorApp.UI.Helpers
             {
                 try
                 {
-                    var bitmap = GenerateImage(); // استفاده از متد بالا
+                    var bitmap = GenerateImage();
                     BitmapEncoder encoder;
 
                     if (saveDialog.FileName.ToLower().EndsWith(".jpg"))
@@ -137,7 +136,7 @@ namespace FactorApp.UI.Helpers
             }
         }
 
-        // 4. ذخیره در فایل موقت (برای واتساپ)
+        // 4. ذخیره فایل موقت
         public string SaveToTempFile()
         {
             try
@@ -145,7 +144,7 @@ namespace FactorApp.UI.Helpers
                 string fileName = $"Factor_{_invoice.InvoiceNumber}_{DateTime.Now.Ticks}.png";
                 string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), fileName);
 
-                var bitmap = GenerateImage(); // استفاده از متد بالا
+                var bitmap = GenerateImage();
                 BitmapEncoder encoder = new PngBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(bitmap));
 
@@ -162,7 +161,7 @@ namespace FactorApp.UI.Helpers
             }
         }
 
-        // --- طراحی گرافیکی فاکتور (FlowDocument) ---
+        // --- طراحی گرافیکی فاکتور ---
         private FlowDocument CreateDesign()
         {
             var doc = new FlowDocument
@@ -174,14 +173,18 @@ namespace FactorApp.UI.Helpers
             };
 
             var shayanBlue = new SolidColorBrush(Color.FromRgb(20, 30, 100));
+            var alertRed = new SolidColorBrush(Color.FromRgb(200, 0, 0));
 
             Grid wrapperGrid = new Grid();
             Grid invoiceLayer = new Grid { Margin = new Thickness(30) };
-            invoiceLayer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2.3, GridUnitType.Star) });
-            invoiceLayer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-            // >>> سایدبار
+            invoiceLayer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2.3, GridUnitType.Star) }); // محتوا
+            invoiceLayer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // سایدبار
+
+            // >>>>> سایدبار (راست)
             StackPanel sidebar = new StackPanel { Margin = new Thickness(10, 0, 0, 0) };
+
+            // لوگو
             Image logoImage = new Image { Width = 80, Height = 80, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 10) };
             try { logoImage.Source = new BitmapImage(new Uri("pack://application:,,,/logo.png")); } catch { }
             sidebar.Children.Add(logoImage);
@@ -189,30 +192,88 @@ namespace FactorApp.UI.Helpers
             sidebar.Children.Add(new TextBlock { Text = "مرکز چاپ شایان (۱)", FontSize = 16, FontWeight = FontWeights.ExtraBold, Foreground = shayanBlue, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center });
             sidebar.Children.Add(new TextBlock { Text = "Digital Printing Center", FontSize = 11, Foreground = shayanBlue, FontWeight = FontWeights.Bold, HorizontalAlignment = HorizontalAlignment.Center });
             sidebar.Children.Add(new TextBlock { Text = "Indoor - Outdoor", FontSize = 10, Foreground = shayanBlue, HorizontalAlignment = HorizontalAlignment.Center });
-            sidebar.Children.Add(new TextBlock { Text = "مجری کلیه امور چاپی", FontSize = 12, FontWeight = FontWeights.Bold, Foreground = shayanBlue, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 15, 0, 0) });
-            sidebar.Children.Add(new TextBlock { Text = "افست - دیجیتال", FontSize = 14, FontWeight = FontWeights.Bold, Foreground = shayanBlue, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 5, 0, 20) });
-            sidebar.Children.Add(new TextBlock { Text = $"تاریخ: {ToPersian(DateUtils.ToShamsi(_invoice.Date))}", FontSize = 11, Foreground = shayanBlue, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 10, 0, 0) });
+            sidebar.Children.Add(new TextBlock { Text = "مجری کلیه امور چاپی", FontSize = 12, FontWeight = FontWeights.Bold, Foreground = shayanBlue, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 15, 0, 10) });
+            sidebar.Children.Add(new TextBlock { Text = $"تاریخ: {ToPersian(DateUtils.ToShamsi(_invoice.Date))}", FontSize = 11, Foreground = shayanBlue, HorizontalAlignment = HorizontalAlignment.Center });
 
-            StackPanel footerInfo = new StackPanel { Margin = new Thickness(0, 50, 0, 0) };
+            // --- نمایش کارت بانکی در سایدبار ---
+            if (!_invoice.IsPaid)
+            {
+                Border cardBorder = new Border
+                {
+                    BorderBrush = shayanBlue,
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(5),
+                    Margin = new Thickness(5, 20, 5, 0),
+                    Padding = new Thickness(5),
+                    Background = new SolidColorBrush(Color.FromRgb(245, 245, 255))
+                };
+                StackPanel cardStack = new StackPanel();
+                cardStack.Children.Add(new TextBlock { Text = "شماره کارت:", FontSize = 9, FontWeight = FontWeights.Bold, Foreground = shayanBlue, HorizontalAlignment = HorizontalAlignment.Center });
+
+                // اصلاح جهت متن برای شماره کارت
+                cardStack.Children.Add(new TextBlock { Text = ToPersian(CardNumber), FontSize = 15, FontWeight = FontWeights.Bold, FlowDirection = FlowDirection.LeftToRight, Foreground = Brushes.Black, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 2, 0, 2) });
+
+                cardStack.Children.Add(new TextBlock { Text = CardHolder, FontSize = 9, HorizontalAlignment = HorizontalAlignment.Center });
+
+                cardBorder.Child = cardStack;
+                sidebar.Children.Add(cardBorder);
+            }
+
+            // فوتر سایدبار (آدرس)
+            StackPanel footerInfo = new StackPanel { Margin = new Thickness(0, 30, 0, 0) };
             footerInfo.Children.Add(new TextBlock { Text = "تهران، خیابان دکتر فاطمی، روبروی سازمان آب، پلاک ۲۰۵", FontSize = 8, TextWrapping = TextWrapping.Wrap, Foreground = shayanBlue, TextAlignment = TextAlignment.Center });
             footerInfo.Children.Add(new TextBlock { Text = "تلفن : " + ToPersian("88954562 - 88960183"), FontSize = 9, FontWeight = FontWeights.Bold, Foreground = shayanBlue, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 5, 0, 0) });
             footerInfo.Children.Add(new TextBlock { Text = "تلگرام، واتساپ: " + ToPersian("09196847300"), FontSize = 8, Foreground = shayanBlue, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 2, 0, 0) });
             footerInfo.Children.Add(new TextBlock { Text = "Email: shayandigital@yahoo.com", FontSize = 8, Foreground = shayanBlue, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 2, 0, 0) });
             sidebar.Children.Add(footerInfo);
+
             Grid.SetColumn(sidebar, 1);
             invoiceLayer.Children.Add(sidebar);
 
-            // >>> محتوا
+            // >>>>> محتوا (چپ)
             StackPanel contentPanel = new StackPanel();
-            StackPanel headerPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 10) };
-            headerPanel.Children.Add(new TextBlock { Text = "مشتری محترم: ", FontSize = 10, Foreground = shayanBlue, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 5, 0) });
+
+            // هدر شامل نام مشتری و شماره فاکتور
+            Grid headerGrid = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // سمت راست (نام)
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // سمت چپ (شماره)
+
+            // نام مشتری
+            StackPanel namePanel = new StackPanel { Orientation = Orientation.Horizontal };
+            namePanel.Children.Add(new TextBlock { Text = "مشتری محترم: ", FontSize = 10, Foreground = shayanBlue, VerticalAlignment = VerticalAlignment.Bottom });
+
             Grid nameContainer = new Grid();
             nameContainer.Children.Add(new TextBlock { Text = "...............................................................................", FontSize = 10, Foreground = shayanBlue, VerticalAlignment = VerticalAlignment.Bottom });
             nameContainer.Children.Add(new TextBlock { Text = _invoice.Customer.Name, FontSize = 11, FontWeight = FontWeights.Bold, Foreground = Brushes.Black, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 7) });
-            headerPanel.Children.Add(nameContainer);
-            contentPanel.Children.Add(headerPanel);
+            namePanel.Children.Add(nameContainer);
 
-            // جدول
+            Grid.SetColumn(namePanel, 0);
+            headerGrid.Children.Add(namePanel);
+
+            // شماره فاکتور (سمت چپ)
+            // >>> تغییر: فقط اگر شماره معتبر بود و Draft نبود نمایش بده <<<
+            bool isValidNumber = !string.IsNullOrWhiteSpace(_invoice.InvoiceNumber) &&
+                                 _invoice.InvoiceNumber != "0" &&
+                                 !_invoice.InvoiceNumber.ToLower().Contains("draft");
+
+            if (isValidNumber)
+            {
+                TextBlock invoiceNumTxt = new TextBlock
+                {
+                    Text = $"شماره: {ToPersian(_invoice.InvoiceNumber)}",
+                    FontSize = 12,
+                    FontWeight = FontWeights.Bold,
+                    Foreground = alertRed,
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    Margin = new Thickness(0, 0, 0, 5)
+                };
+                Grid.SetColumn(invoiceNumTxt, 1);
+                headerGrid.Children.Add(invoiceNumTxt);
+            }
+
+            contentPanel.Children.Add(headerGrid);
+
+            // جدول اقلام
             Grid tableGrid = new Grid();
             tableGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.3, GridUnitType.Star) });
             tableGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2.5, GridUnitType.Star) });
@@ -272,30 +333,74 @@ namespace FactorApp.UI.Helpers
             wordsBorder.Child = wordsPanel;
             contentPanel.Children.Add(wordsBorder);
 
-            Grid footerGrid = new Grid { Margin = new Thickness(0, 10, 0, 0) };
+            // فوتر (مهر و امضا)
+            Grid footerGrid = new Grid { Margin = new Thickness(0, 5, 0, 0) };
+
             footerGrid.ColumnDefinitions.Add(new ColumnDefinition());
             footerGrid.ColumnDefinitions.Add(new ColumnDefinition());
+
+            // --- سمت خریدار ---
             footerGrid.Children.Add(new TextBlock { Text = "خـریـدار", HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 0, 40, 0), FontSize = 11, FontWeight = FontWeights.Bold });
-            TextBlock sellerTxt = new TextBlock { Text = "فـروشـنـده", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(40, 0, 0, 0), FontSize = 11, FontWeight = FontWeights.Bold };
-            Grid.SetColumn(sellerTxt, 1);
-            footerGrid.Children.Add(sellerTxt);
+
+            // --- سمت فروشنده ---
+            Grid sellerGrid = new Grid
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(20, 0, 0, 0),
+                Height = 30, // ارتفاع ثابت و کم
+                VerticalAlignment = VerticalAlignment.Top
+            };
+
+            // 1. عکس امضا
+            Image signatureImg = new Image { Width = 80, Height = 60, Stretch = Stretch.Uniform };
+            signatureImg.RenderTransform = new TranslateTransform(0, 0);
+            try
+            {
+                signatureImg.Source = new BitmapImage(new Uri("pack://application:,,,/shop_signature.png"));
+            }
+            catch { }
+            sellerGrid.Children.Add(signatureImg);
+
+            // 2. عکس مهر
+            Image stampShopImg = new Image { Width = 90, Height = 90, Stretch = Stretch.Uniform, Opacity = 0.9 };
+            stampShopImg.RenderTransform = new TranslateTransform(0, -5);
+            try
+            {
+                stampShopImg.Source = new BitmapImage(new Uri("pack://application:,,,/shop_stamp.png"));
+            }
+            catch { }
+            sellerGrid.Children.Add(stampShopImg);
+
+            // 3. متن فروشنده
+            sellerGrid.Children.Add(new TextBlock
+            {
+                Text = "فـروشـنـده",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                FontSize = 11,
+                FontWeight = FontWeights.Bold,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+
+            Grid.SetColumn(sellerGrid, 1);
+            footerGrid.Children.Add(sellerGrid);
+
             contentPanel.Children.Add(footerGrid);
 
             Grid.SetColumn(contentPanel, 0);
             invoiceLayer.Children.Add(contentPanel);
             wrapperGrid.Children.Add(invoiceLayer);
 
-            // مهر
-            Image stampImage = new Image { Width = 250, Height = 150, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Opacity = 0.6, IsHitTestVisible = false };
-            stampImage.RenderTransformOrigin = new Point(0.5, 0.5);
-            stampImage.RenderTransform = new RotateTransform(20);
+            // واترمارک
+            Image statusStamp = new Image { Width = 250, Height = 150, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Opacity = 0.6, IsHitTestVisible = false };
+            statusStamp.RenderTransformOrigin = new Point(0.5, 0.5);
+            statusStamp.RenderTransform = new RotateTransform(20);
             try
             {
-                if (_invoice.IsPaid) stampImage.Source = new BitmapImage(new Uri("pack://application:,,,/paid.png"));
-                else stampImage.Source = new BitmapImage(new Uri("pack://application:,,,/unpaid.png"));
+                if (_invoice.IsPaid) statusStamp.Source = new BitmapImage(new Uri("pack://application:,,,/paid.png"));
+                else statusStamp.Source = new BitmapImage(new Uri("pack://application:,,,/unpaid.png"));
             }
             catch { }
-            wrapperGrid.Children.Add(stampImage);
+            wrapperGrid.Children.Add(statusStamp);
 
             doc.Blocks.Add(new BlockUIContainer(wrapperGrid));
             return doc;

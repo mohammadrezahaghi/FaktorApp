@@ -21,176 +21,203 @@
         Closing="Window_Closing">
 
     <Window.Resources>
-        <Style x:Key="LocalMenuButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource MenuButtonStyle}">
-            <Setter Property="Foreground"
-                    Value="{DynamicResource MaterialDesignBody}"/>
-            <Setter Property="Background"
-                    Value="Transparent"/>
-            <Setter Property="BorderBrush"
-                    Value="Transparent"/>
+        <Style x:Key="LocalMenuButtonStyle" TargetType="Button" BasedOn="{StaticResource MenuButtonStyle}">
+            <Setter Property="Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Height" Value="50"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1A888888"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="TitleBarButtonStyle" TargetType="Button" BasedOn="{StaticResource MaterialDesignToolForegroundButton}">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
         </Style>
     </Window.Resources>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="260"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="5" />
+    </WindowChrome.WindowChrome>
 
-        <Border Grid.Column="0"
-                Background="{DynamicResource MaterialDesignCardBackground}"
-                BorderBrush="{DynamicResource MaterialDesignDivider}"
-                BorderThickness="0,0,1,0">
-            <StackPanel>
-                <StackPanel Margin="0,40,0,40"
-                            HorizontalAlignment="Center">
-                    <materialDesign:PackIcon Kind="Printer"
-                                             Width="50"
-                                             Height="50"
-                                             Foreground="{DynamicResource MaterialDesignBody}"
-                                             HorizontalAlignment="Center"
-                                             Margin="0,0,0,10"/>
-
-                    <TextBlock Text="چــــاپ شــــایـــان"
-                               Foreground="{DynamicResource MaterialDesignBody}"
-                               FontSize="22"
-                               FontWeight="Bold"
-                               HorizontalAlignment="Center"/>
-
-                    <TextBlock Text="نسخه ۱۰.۰"
-                               Foreground="{DynamicResource MaterialDesignBody}"
-                               Opacity="0.5"
-                               FontSize="12"
-                               HorizontalAlignment="Center"
-                               Margin="0,5,0,0"/>
-                </StackPanel>
-
-                <Button Style="{StaticResource LocalMenuButtonStyle}"
-                        Click="BtnDashboard_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="ViewDashboard"
-                                                 Margin="0,0,15,0"
-                                                 VerticalAlignment="Center"/>
-                        <TextBlock Text="داشبورد"/>
-                    </StackPanel>
-                </Button>
-
-                <Button Style="{StaticResource LocalMenuButtonStyle}"
-                        Click="BtnNewInvoice_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="FileDocumentPlus"
-                                                 Margin="0,0,15,0"
-                                                 VerticalAlignment="Center"/>
-                        <TextBlock Text="ثبت فاکتور جدید"/>
-                    </StackPanel>
-                </Button>
-
-                <Button Style="{StaticResource LocalMenuButtonStyle}"
-                        Click="BtnOrders_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="FormatListBulleted"
-                                                 Margin="0,0,15,0"
-                                                 VerticalAlignment="Center"/>
-                        <TextBlock Text="لیست سفارشات"/>
-                    </StackPanel>
-                </Button>
-
-                <Button Style="{StaticResource LocalMenuButtonStyle}"
-                        Click="BtnCustomers_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="AccountGroup"
-                                                 Margin="0,0,15,0"
-                                                 VerticalAlignment="Center"/>
-                        <TextBlock Text="مشتریان"/>
-                    </StackPanel>
-                </Button>
-
-                <Button Style="{StaticResource LocalMenuButtonStyle}"
-                        Click="BtnServices_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="PrinterSettings"
-                                                 Margin="0,0,15,0"
-                                                 VerticalAlignment="Center"/>
-                        <TextBlock Text="خدمات و قیمت‌ها"/>
-                    </StackPanel>
-                </Button>
-
-                <Separator Background="{DynamicResource MaterialDesignDivider}"
-                           Margin="20,20"/>
-
-                <Button Style="{StaticResource LocalMenuButtonStyle}"
-                        Click="BtnSettings_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Cog"
-                                                 Margin="0,0,15,0"
-                                                 VerticalAlignment="Center"/>
-                        <TextBlock Text="تنظیمات سیستم"/>
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-        </Border>
-
-        <Grid Grid.Column="1"
-              Background="{DynamicResource MaterialDesignPaper}">
+    <materialDesign:DialogHost Identifier="RootDialog" DialogTheme="Inherit">
+        
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <materialDesign:ColorZone Mode="Standard"
-                                      Padding="16"
-                                      materialDesign:ElevationAssist.Elevation="Dp4">
-                <Grid>
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Left">
-                        <materialDesign:PackIcon Kind="Bell"
-                                                 Width="25"
-                                                 Height="25"
-                                                 Margin="15,0"
-                                                 Opacity="0.6"/>
-                        <materialDesign:PackIcon Kind="AccountCircle"
-                                                 Width="25"
-                                                 Height="25"
-                                                 Opacity="0.6"/>
+            <materialDesign:ColorZone Grid.Row="0" Mode="Standard" 
+                                  Background="{DynamicResource MaterialDesignPaper}"
+                                  materialDesign:ElevationAssist.Elevation="Dp4"
+                                  MouseDown="ColorZone_MouseDown">
 
-                        <TextBlock Text="کاربر: ادمین"
-                                   VerticalAlignment="Center"
-                                   Margin="10,0,0,0"
-                                   FontWeight="Bold"/>
+                <materialDesign:ColorZone.Style>
+                    <Style TargetType="materialDesign:ColorZone">
+                        <Setter Property="Padding" Value="5"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
+                                <Setter Property="Padding" Value="5,12,5,5"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </materialDesign:ColorZone.Style>
+
+                <DockPanel LastChildFill="False">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="0,0,10,0">
+                        <materialDesign:PackIcon Kind="Printer" VerticalAlignment="Center" Margin="0,0,5,0" 
+                                             Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                        <TextBlock Text="فاکتور شایان" VerticalAlignment="Center" FontWeight="Bold" 
+                               Foreground="{DynamicResource SidebarForegroundBrush}"/>
                     </StackPanel>
 
-                    <TextBlock Text="پنل مدیریت"
-                               HorizontalAlignment="Right"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Opacity="0.6"/>
-                </Grid>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                        <Button Style="{StaticResource TitleBarButtonStyle}" Click="BtnClose_Click" 
+                            ToolTip="بستن" Foreground="#FF5555" 
+                            MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave">
+                            <materialDesign:PackIcon Kind="Close" />
+                        </Button>
+
+                        <Button Style="{StaticResource TitleBarButtonStyle}" Click="BtnMaximize_Click" ToolTip="تغییر سایز"
+                            Foreground="{DynamicResource SidebarForegroundBrush}">
+                            <materialDesign:PackIcon>
+                                <materialDesign:PackIcon.Style>
+                                    <Style TargetType="materialDesign:PackIcon">
+                                        <Setter Property="Kind" Value="WindowMaximize"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
+                                                <Setter Property="Kind" Value="WindowRestore"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </materialDesign:PackIcon.Style>
+                            </materialDesign:PackIcon>
+                        </Button>
+
+                        <Button Style="{StaticResource TitleBarButtonStyle}" Click="BtnMinimize_Click" ToolTip="کوچک‌نمایی"
+                            Foreground="{DynamicResource SidebarForegroundBrush}">
+                            <materialDesign:PackIcon Kind="WindowMinimize" />
+                        </Button>
+                    </StackPanel>
+                </DockPanel>
             </materialDesign:ColorZone>
 
             <Grid Grid.Row="1">
-                <Frame x:Name="MainContentFrame"
-                       NavigationUIVisibility="Hidden"
-                       Margin="20"
-                       Panel.ZIndex="1"/>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="260"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                <Grid x:Name="PlaceholderGrid"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
-                      Opacity="0.3"
-                      Panel.ZIndex="0">
-                    <StackPanel HorizontalAlignment="Center">
-                        <materialDesign:PackIcon Kind="Drawing"
-                                                 Width="100"
-                                                 Height="100"
-                                                 HorizontalAlignment="Center"/>
-                        <TextBlock Text="یک گزینه از منو انتخاب کنید"
-                                   FontSize="20"
-                                   Margin="0,10,0,0"/>
+                <Border Grid.Column="0"
+                    Background="{DynamicResource SidebarBackgroundBrush}"
+                    BorderThickness="0,0,1,0"
+                    BorderBrush="{DynamicResource MaterialDesignDivider}">
+                    <StackPanel>
+                        <StackPanel Margin="0,40,0,40" HorizontalAlignment="Center">
+                            <materialDesign:PackIcon Kind="Printer" Width="60" Height="60" 
+                                                 Foreground="{DynamicResource SidebarForegroundBrush}" 
+                                                 HorizontalAlignment="Center" Margin="0,0,0,15"/>
+
+                            <TextBlock Text="چــــاپ شــــایـــان" 
+                                   Foreground="{DynamicResource SidebarForegroundBrush}" 
+                                   FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
+
+                        <TextBlock x:Name="TxtVersion"
+           Text="نسخه 0.0.0"
+           Foreground="{DynamicResource SidebarForegroundBrush}"
+           Opacity="0.7"
+           FontSize="12"
+           HorizontalAlignment="Center"
+           Margin="0,5,0,0"/>
+
+                        </StackPanel>
+
+                        <Button Style="{StaticResource LocalMenuButtonStyle}" Click="BtnDashboard_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="ViewDashboard" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="داشبورد"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource LocalMenuButtonStyle}" Click="BtnNewInvoice_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FileDocumentPlus" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="ثبت فاکتور جدید"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource LocalMenuButtonStyle}" Click="BtnOrders_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FormatListBulleted" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="لیست سفارشات"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource LocalMenuButtonStyle}" Click="BtnCustomers_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="AccountGroup" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="مشتریان"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource LocalMenuButtonStyle}" Click="BtnServices_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="PrinterSettings" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="خدمات و قیمت‌ها"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Separator Background="{DynamicResource SidebarForegroundBrush}" Opacity="0.2" Margin="20,20"/>
+
+                        <Button Style="{StaticResource LocalMenuButtonStyle}" Click="BtnSettings_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Cog" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="تنظیمات سیستم"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
+                </Border>
+
+                <Grid Grid.Column="1" Background="{DynamicResource MaterialDesignPaper}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <materialDesign:ColorZone Mode="Standard" Padding="16" Panel.ZIndex="1">
+                        <materialDesign:ColorZone.Effect>
+                            <DropShadowEffect Direction="270" ShadowDepth="3" BlurRadius="5" Opacity="0.2" Color="Black"/>
+                        </materialDesign:ColorZone.Effect>
+
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <materialDesign:PackIcon Kind="Bell" Width="25" Height="25" Margin="15,0" Opacity="0.6"/>
+                                <materialDesign:PackIcon Kind="AccountCircle" Width="25" Height="25" Opacity="0.6"/>
+                                <TextBlock Text="کاربر: ادمین" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
+                            </StackPanel>
+
+                            <TextBlock Text="پنل مدیریت" HorizontalAlignment="Right" FontSize="18" FontWeight="Bold" Opacity="0.8"/>
+                        </Grid>
+                    </materialDesign:ColorZone>
+
+                    <Grid Grid.Row="1">
+                        <Frame x:Name="MainContentFrame" NavigationUIVisibility="Hidden" Margin="20" Panel.ZIndex="1"/>
+                        <Grid x:Name="PlaceholderGrid" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.3" Panel.ZIndex="0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <materialDesign:PackIcon Kind="Drawing" Width="100" Height="100" HorizontalAlignment="Center" 
+                                                     Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                                <TextBlock Text="یک گزینه از منو انتخاب کنید" FontSize="20" Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
                 </Grid>
             </Grid>
         </Grid>
-    </Grid>
+    </materialDesign:DialogHost>
 </Window>

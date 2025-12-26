@@ -8,9 +8,9 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>logo.ico</ApplicationIcon>
     <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <Version>1.0.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 <ItemGroup>
     <Resource Include="logo.ico" />
@@ -22,7 +22,8 @@
     <Resource Include="Fonts\IRANSansWeb.ttf" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="paid.png" />    <Resource Include="unpaid.png" />
+    <Resource Include="paid.png" />    <Resource Include="unpaid.png" /> <Resource Include="shop_stamp.png" />
+    <Resource Include="shop_signature.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autoupdater.NET.Official" Version="1.9.2" />

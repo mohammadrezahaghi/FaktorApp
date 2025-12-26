@@ -27,7 +27,8 @@
                        Foreground="#311b92"
                        HorizontalAlignment="Center"/>
 
-            <TextBlock Text="نسخه ۱۰.۰"
+            <TextBlock x:Name="TxtVersion"
+                           Text="نسخه 0.0.0"
                        FontSize="14"
                        Foreground="Gray"
                        HorizontalAlignment="Center"

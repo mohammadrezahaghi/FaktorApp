@@ -1,0 +1,41 @@
+<UserControl x:Class="FactorApp.UI.UserControls.MessageDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             Width="350" Height="Auto" FontFamily="IranSans">
+
+    <materialDesign:Card UniformCornerRadius="10" Padding="20" Background="{DynamicResource MaterialDesignPaper}">
+        <StackPanel>
+            <materialDesign:PackIcon x:Name="MsgIcon" 
+                                     Kind="Information" 
+                                     Width="50" Height="50" 
+                                     HorizontalAlignment="Center" 
+                                     Margin="0,0,0,15"/>
+
+            <TextBlock x:Name="MsgTitle" 
+                       Text="پیام" 
+                       Style="{StaticResource MaterialDesignHeadline6TextBlock}" 
+                       HorizontalAlignment="Center" 
+                       FontFamily="IranSans"
+                       Margin="0,0,0,10"/>
+
+            <TextBlock x:Name="TxtMessage" 
+                       Text="متن پیام اینجا قرار می‌گیرد..." 
+                       TextWrapping="Wrap" 
+                       TextAlignment="Center"
+                       Opacity="0.8"
+                       FontFamily="IranSans"
+                       Margin="0,0,0,25"/>
+
+            <Button Content="متوجه شدم" 
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                    Width="120"
+                    FontFamily="IranSans"
+                    HorizontalAlignment="Center"/>
+        </StackPanel>
+    </materialDesign:Card>
+</UserControl>

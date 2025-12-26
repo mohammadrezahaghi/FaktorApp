@@ -1,32 +1,30 @@
 using System;
 using System.Linq;
-using System.Windows;
+using System.Windows; 
 using System.Windows.Controls;
+using MaterialDesignThemes.Wpf; // برای DialogHost
+using Microsoft.Win32; // برای SaveFileDialog
+
+// *** هماهنگی نام‌ها با FactorApp ***
 using FactorApp.UI.Data;
 using FactorApp.UI.Helpers;
 using FactorApp.UI.Models;
-using MaterialDesignThemes.Wpf;
+using FactorApp.UI.UserControls; // برای دسترسی به MessageDialog و ConfirmDialog
 
-// رفع تداخل‌ها
-using MessageBox = System.Windows.MessageBox;
-using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
-using Application = System.Windows.Application;
-using WinFormsApp = System.Windows.Forms.Application;
+// تعریف نام مستعار فقط برای دسترسی به متد Restart
+using WinForms = System.Windows.Forms;
 
 namespace FactorApp.UI.Pages
 {
     public partial class SettingsPage : Page
     {
-        private readonly PaletteHelper _paletteHelper = new PaletteHelper();
-
         public SettingsPage()
         {
             InitializeComponent();
             LoadSettings();
-            // نکته: کد تنظیم اولیه تم را از اینجا برداشتیم و به متد LoadSettings بردیم
         }
 
-        // --- بارگذاری تنظیمات اولیه ---
+        // --- بارگذاری تنظیمات ---
         private void LoadSettings()
         {
             try
@@ -40,31 +38,28 @@ namespace FactorApp.UI.Pages
                         TxtPhone.Text = info.PhoneNumber;
                         TxtAddress.Text = info.Address;
                         TxtFooter.Text = info.FooterText;
-
-                        // >>>> بارگذاری وضعیت تم از دیتابیس <<<<
                         TglDarkMode.IsChecked = info.IsDarkMode;
-
-                        // اعمال تم بر اساس دیتابیس (برای اطمینان)
-                        var theme = _paletteHelper.GetTheme();
-                        theme.SetBaseTheme(info.IsDarkMode ? BaseTheme.Dark : BaseTheme.Light);
-                        _paletteHelper.SetTheme(theme);
                     }
                 }
             }
             catch { }
         }
 
-        // --- تغییر تم (دارک / لایت) و ذخیره در دیتابیس ---
+        // --- متد کمکی برای نمایش پیام مدرن (جایگزین MessageBox) ---
+        private async void ShowAlert(string message, MessageType type)
+        {
+            // ساخت دیالوگ جدید با استایل متریال
+            var view = new MessageDialog(message, type);
+            
+            // نمایش روی RootDialog (که در MainWindow تعریف کردیم)
+            await DialogHost.Show(view, "RootDialog");
+        }
+
+        // --- تغییر تم ---
         private void TglDarkMode_Click(object sender, RoutedEventArgs e)
         {
             bool isDark = TglDarkMode.IsChecked == true;
 
-            // 1. اعمال تغییرات ظاهری
-            var theme = _paletteHelper.GetTheme();
-            theme.SetBaseTheme(isDark ? BaseTheme.Dark : BaseTheme.Light);
-            _paletteHelper.SetTheme(theme);
-
-            // 2. ذخیره در دیتابیس
             try
             {
                 using (var context = new AppDbContext())
@@ -79,12 +74,16 @@ namespace FactorApp.UI.Pages
                     info.IsDarkMode = isDark;
                     context.SaveChanges();
                 }
+
+                // اعمال تم (اشاره به نسخه WPF کلاس Application)
+                if (System.Windows.Application.Current is App myApp)
+                {
+                    myApp.ApplySavedTheme();
+                }
             }
             catch (Exception ex)
             {
-                // در صورت خطا در ذخیره، پیام ندهیم بهتر است تا تجربه کاربری خراب نشود
-                // یا می‌توان در کنسول لاگ کرد
-                System.Diagnostics.Debug.WriteLine("Error saving theme: " + ex.Message);
+                ShowAlert("خطا در ذخیره تم: " + ex.Message, MessageType.Error);
             }
         }
 
@@ -106,73 +105,87 @@ namespace FactorApp.UI.Pages
                     info.PhoneNumber = TxtPhone.Text;
                     info.Address = TxtAddress.Text;
                     info.FooterText = TxtFooter.Text;
-                    // نکته: IsDarkMode را اینجا دست نمیزنیم تا تغییر نکند
 
                     context.SaveChanges();
-                    MessageBox.Show("اطلاعات با موفقیت ذخیره شد.", "موفق", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // نمایش پیام موفقیت مدرن
+                    ShowAlert("اطلاعات فروشگاه با موفقیت ذخیره شد.", MessageType.Success);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("خطا در ذخیره سازی: " + ex.Message);
+                // نمایش پیام خطا مدرن
+                ShowAlert("خطا در ذخیره سازی: " + ex.Message, MessageType.Error);
             }
         }
 
-        // ... (بقیه متدها مثل تغییر رمز، خروج و بکاپ بدون تغییر باقی می‌مانند) ...
-
+        // --- تغییر رمز عبور ---
         private void BtnChangePass_Click(object sender, RoutedEventArgs e)
         {
-            // کدهای قبلی خودتان را اینجا بگذارید
-            // ...
             string oldPass = TxtOldPass.Password;
             string newPass = TxtNewPass.Password;
 
             if (string.IsNullOrWhiteSpace(oldPass) || string.IsNullOrWhiteSpace(newPass))
             {
-                MessageBox.Show("لطفا هر دو فیلد رمز را پر کنید.");
+                ShowAlert("لطفا هر دو فیلد رمز را پر کنید.", MessageType.Warning);
                 return;
             }
 
-            string currentUsername = "admin";
+            string currentUsername = "admin"; 
 
-            using (var context = new AppDbContext())
+            try
             {
-                var user = context.Users.SingleOrDefault(u => u.Username == currentUsername);
-                if (user != null)
+                using (var context = new AppDbContext())
                 {
-                    if (PasswordHelper.VerifyPasswordHash(oldPass, user.PasswordHash, user.PasswordSalt))
+                    var user = context.Users.SingleOrDefault(u => u.Username == currentUsername);
+                    if (user != null)
                     {
-                        PasswordHelper.CreatePasswordHash(newPass, out string hash, out string salt);
-                        user.PasswordHash = hash;
-                        user.PasswordSalt = salt;
-                        context.SaveChanges();
+                        if (PasswordHelper.VerifyPasswordHash(oldPass, user.PasswordHash, user.PasswordSalt))
+                        {
+                            PasswordHelper.CreatePasswordHash(newPass, out string hash, out string salt);
+                            user.PasswordHash = hash;
+                            user.PasswordSalt = salt;
+                            context.SaveChanges();
 
-                        MessageBox.Show("رمز عبور با موفقیت تغییر کرد.");
-                        TxtOldPass.Clear();
-                        TxtNewPass.Clear();
-                    }
-                    else
-                    {
-                        MessageBox.Show("رمز عبور فعلی اشتباه است.");
+                            ShowAlert("رمز عبور با موفقیت تغییر کرد.", MessageType.Success);
+                            TxtOldPass.Clear();
+                            TxtNewPass.Clear();
+                        }
+                        else
+                        {
+                            ShowAlert("رمز عبور فعلی اشتباه است.", MessageType.Error);
+                        }
                     }
                 }
             }
-        }
-
-        private void BtnLogout_Click(object sender, RoutedEventArgs e)
-        {
-            var result = MessageBox.Show("آیا مطمئن هستید که می‌خواهید خارج شوید؟", "خروج", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.Yes)
+            catch (Exception ex)
             {
-                CredentialsHelper.ClearCredentials();
-                WinFormsApp.Restart();
-                Application.Current.Shutdown();
+                ShowAlert("خطا: " + ex.Message, MessageType.Error);
             }
         }
 
+        // --- خروج از حساب (با دیالوگ تایید مدرن) ---
+        private async void BtnLogout_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. نمایش دیالوگ تایید
+            var dialog = new ConfirmDialog("آیا مطمئن هستید که می‌خواهید خارج شوید؟");
+            var result = await DialogHost.Show(dialog, "RootDialog");
+
+            // 2. بررسی نتیجه (True یعنی دکمه بله زده شده)
+            if (result is bool booleanResult && booleanResult == true)
+            {
+                CredentialsHelper.ClearCredentials();
+                
+                // ریستارت برنامه برای رفتن به صفحه لاگین
+                WinForms.Application.Restart();
+                System.Windows.Application.Current.Shutdown();
+            }
+        }
+
+        // --- پشتیبان‌گیری ---
         private void BtnBackup_Click(object sender, RoutedEventArgs e)
         {
-            var saveDialog = new SaveFileDialog
+            var saveDialog = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = "Database Backup (*.db)|*.db",
                 FileName = $"Backup_{DateTime.Now:yyyyMMdd_HHmm}.db"
@@ -182,19 +195,21 @@ namespace FactorApp.UI.Pages
             {
                 try
                 {
-                    if (System.IO.File.Exists("FactorApp.db"))
+                    string dbName = "FactorApp.db"; 
+                    
+                    if (System.IO.File.Exists(dbName))
                     {
-                        System.IO.File.Copy("FactorApp.db", saveDialog.FileName, true);
-                        MessageBox.Show("پشتیبان‌گیری انجام شد.");
+                        System.IO.File.Copy(dbName, saveDialog.FileName, true);
+                        ShowAlert("پشتیبان‌گیری انجام شد.", MessageType.Success);
                     }
                     else
                     {
-                        MessageBox.Show("فایل دیتابیس یافت نشد.");
+                        ShowAlert("فایل دیتابیس یافت نشد.", MessageType.Error);
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("خطا در پشتیبان‌گیری: " + ex.Message);
+                    ShowAlert("خطا در پشتیبان‌گیری: " + ex.Message, MessageType.Error);
                 }
             }
         }

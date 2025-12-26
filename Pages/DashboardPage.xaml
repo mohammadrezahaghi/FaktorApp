@@ -20,6 +20,21 @@
 
     <Page.Resources>
         <helpers:ShamsiDateConverter x:Key="ShamsiDateConverter"/>
+
+        <Style x:Key="CenterAlignedColumn" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
+            <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
     </Page.Resources>
 
     <Grid Margin="20">
@@ -28,162 +43,94 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0"
-                Margin="0,0,0,30">
+        <Grid Grid.Row="0" Margin="0,0,0,30">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
 
-            <materialDesign:Card Grid.Column="0"
-                    Margin="5"
-                    Padding="20"
-                    Background="#43A047"
-                    Foreground="White"
-                    materialDesign:ElevationAssist.Elevation="Dp3">
+            <materialDesign:Card Grid.Column="0" Margin="5" Padding="20" materialDesign:ElevationAssist.Elevation="Dp3"
+                                 Background="{DynamicResource SidebarBackgroundBrush}" Foreground="{DynamicResource SidebarForegroundBrush}">
                 <StackPanel>
                     <DockPanel>
-                        <materialDesign:PackIcon Kind="CashMultiple"
-                                Width="30"
-                                Height="30"
-                                DockPanel.Dock="Right"
-                                Opacity="0.8"/>
-                        <TextBlock Text="فروش امروز"
-                                FontSize="16"
-                                FontWeight="Bold"
-                                VerticalAlignment="Center"
-                                Margin="0,0,10,0"/>
+                        <materialDesign:PackIcon Kind="CashMultiple" Width="30" Height="30" DockPanel.Dock="Right" Opacity="0.8"/>
+                        <TextBlock Text="فروش امروز" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     </DockPanel>
-                    <TextBlock x:Name="TxtTodaySales"
-                            Text="0 ریال"
-                            FontSize="26"
-                            FontWeight="Bold"
-                            Margin="0,15,0,0"
-                            HorizontalAlignment="Left"/>
+                    <TextBlock x:Name="TxtTodaySales" Text="0 ریال" FontSize="26" FontWeight="Bold" Margin="0,15,0,0" HorizontalAlignment="Left"/>
                 </StackPanel>
             </materialDesign:Card>
 
-            <materialDesign:Card Grid.Column="1"
-                    Margin="5"
-                    Padding="20"
-                    Background="#1E88E5"
-                    Foreground="White"
-                    materialDesign:ElevationAssist.Elevation="Dp3">
+            <materialDesign:Card Grid.Column="1" Margin="5" Padding="20" materialDesign:ElevationAssist.Elevation="Dp3"
+                                 Background="{DynamicResource SidebarBackgroundBrush}" Foreground="{DynamicResource SidebarForegroundBrush}">
                 <StackPanel>
                     <DockPanel>
-                        <materialDesign:PackIcon Kind="Receipt"
-                                Width="30"
-                                Height="30"
-                                DockPanel.Dock="Right"
-                                Opacity="0.8"/>
-                        <TextBlock Text="سفارشات امروز"
-                                FontSize="16"
-                                FontWeight="Bold"
-                                VerticalAlignment="Center"
-                                Margin="0,0,10,0"/>
+                        <materialDesign:PackIcon Kind="Receipt" Width="30" Height="30" DockPanel.Dock="Right" Opacity="0.8"/>
+                        <TextBlock Text="سفارشات امروز" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     </DockPanel>
-                    <TextBlock x:Name="TxtTodayCount"
-                            Text="0 عدد"
-                            FontSize="26"
-                            FontWeight="Bold"
-                            Margin="0,15,0,0"
-                            HorizontalAlignment="Left"/>
+                    <TextBlock x:Name="TxtTodayCount" Text="0 عدد" FontSize="26" FontWeight="Bold" Margin="0,15,0,0" HorizontalAlignment="Left"/>
                 </StackPanel>
             </materialDesign:Card>
 
-            <materialDesign:Card Grid.Column="2"
-                    Margin="5"
-                    Padding="20"
-                    Background="#FB8C00"
-                    Foreground="White"
-                    materialDesign:ElevationAssist.Elevation="Dp3">
+            <materialDesign:Card Grid.Column="2" Margin="5" Padding="20" materialDesign:ElevationAssist.Elevation="Dp3"
+                                 Background="{DynamicResource SidebarBackgroundBrush}" Foreground="{DynamicResource SidebarForegroundBrush}">
                 <StackPanel>
                     <DockPanel>
-                        <materialDesign:PackIcon Kind="AccountGroup"
-                                Width="30"
-                                Height="30"
-                                DockPanel.Dock="Right"
-                                Opacity="0.8"/>
-                        <TextBlock Text="کل مشتریان"
-                                FontSize="16"
-                                FontWeight="Bold"
-                                VerticalAlignment="Center"
-                                Margin="0,0,10,0"/>
+                        <materialDesign:PackIcon Kind="AccountGroup" Width="30" Height="30" DockPanel.Dock="Right" Opacity="0.8"/>
+                        <TextBlock Text="کل مشتریان" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     </DockPanel>
-                    <TextBlock x:Name="TxtTotalCustomers"
-                            Text="0 نفر"
-                            FontSize="26"
-                            FontWeight="Bold"
-                            Margin="0,15,0,0"
-                            HorizontalAlignment="Left"/>
+                    <TextBlock x:Name="TxtTotalCustomers" Text="0 نفر" FontSize="26" FontWeight="Bold" Margin="0,15,0,0" HorizontalAlignment="Left"/>
                 </StackPanel>
             </materialDesign:Card>
         </Grid>
 
-        <materialDesign:Card Grid.Row="1"
-                             Padding="0"
-                             materialDesign:ElevationAssist.Elevation="Dp2"
-                             UniformCornerRadius="5"
-                             Background="{DynamicResource MaterialDesignCardBackground}">
+        <materialDesign:Card Grid.Row="1" Padding="0" materialDesign:ElevationAssist.Elevation="Dp2"
+                             UniformCornerRadius="8" Background="{DynamicResource MaterialDesignCardBackground}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Border Background="{DynamicResource MaterialDesignPaper}"
-                        Padding="15"
-                        CornerRadius="5,5,0,0">
+                <Border Background="{DynamicResource SidebarBackgroundBrush}" Padding="15" CornerRadius="8,8,0,0">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="History"
-                                VerticalAlignment="Center"
-                                Margin="0,0,10,0"
-                                Opacity="0.6"/>
-                        <TextBlock Text="آخرین سفارشات ثبت شده"
-                                Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+                        <materialDesign:PackIcon Kind="History" VerticalAlignment="Center" Margin="0,0,10,0" 
+                                                 Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                        <TextBlock Text="آخرین سفارشات ثبت شده" Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                   Foreground="{DynamicResource SidebarForegroundBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <DataGrid Grid.Row="1"
-                          x:Name="DataGridRecent"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          HeadersVisibility="All"
-                          HorizontalScrollBarVisibility="Auto"
-                          VerticalScrollBarVisibility="Auto"
-                          materialDesign:DataGridAssist.CellPadding="13 8 8 8"
-                          materialDesign:DataGridAssist.ColumnHeaderPadding="8"
-                          Background="{x:Null}"
-                          BorderThickness="0">
+                <DataGrid Grid.Row="1" x:Name="DataGridRecent" AutoGenerateColumns="False" IsReadOnly="True"
+                          HeadersVisibility="Column" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                          materialDesign:DataGridAssist.CellPadding="13 8 8 8" materialDesign:DataGridAssist.ColumnHeaderPadding="8"
+                          Background="{x:Null}" BorderThickness="0"
+                          VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
+                    
                     <DataGrid.Columns>
-                        <DataGridTextColumn Binding="{Binding InvoiceNumber}"
-                                Header="شماره فاکتور"
-                                Width="1.5*"/>
-                        <DataGridTextColumn Binding="{Binding Customer.Name}"
-                                Header="مشتری"
-                                Width="2*"/>
-                        <DataGridTextColumn Binding="{Binding FinalAmount, StringFormat=N0}"
-                                Header="مبلغ (ریال)"
-                                Width="1.5*"/>
-                        <DataGridTextColumn Binding="{Binding Date, Converter={StaticResource ShamsiDateConverter}}"
-                                Header="تاریخ"
-                                Width="1.5*"/>
-                        <DataGridTextColumn Binding="{Binding Date, StringFormat={}{0:HH:mm}}"
-                                Header="ساعت"
-                                Width="1*"/>
+                        <DataGridTextColumn Binding="{Binding InvoiceNumber}" Header="شماره فاکتور" Width="1.2*" 
+                                            ElementStyle="{StaticResource CenterAlignedColumn}"/>
+                        
+                        <DataGridTextColumn Binding="{Binding Customer.Name}" Header="مشتری" Width="1.5*" 
+                                            ElementStyle="{StaticResource CenterAlignedColumn}"/>
+                        
+                        <DataGridTextColumn Binding="{Binding FinalAmount, StringFormat=N0}" Header="مبلغ (ریال)" Width="1.5*" 
+                                            ElementStyle="{StaticResource CenterAlignedColumn}"/>
+                        
+                        <DataGridTextColumn Binding="{Binding Date, Converter={StaticResource ShamsiDateConverter}}" Header="تاریخ" Width="1.2*" 
+                                            ElementStyle="{StaticResource CenterAlignedColumn}"/>
+                        
+                        <DataGridTextColumn Binding="{Binding Date, StringFormat={}{0:HH:mm}}" Header="ساعت" Width="0.8*" 
+                                            ElementStyle="{StaticResource CenterAlignedColumn}"/>
 
-                        <DataGridTemplateColumn Header="وضعیت"
-                                Width="1*">
+                        <DataGridTemplateColumn Header="وضعیت" Width="1.2*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border Background="{DynamicResource MaterialDesignDivider}"
-                                            CornerRadius="4"
-                                            Padding="8,2">
-                                        <TextBlock Text="{Binding Status}"
-                                                   HorizontalAlignment="Center"
-                                                   FontSize="11"/>
-                                    </Border>
+                                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Border Background="{DynamicResource MaterialDesignDivider}" CornerRadius="4" Padding="8,2">
+                                            <TextBlock Text="{Binding Status}" HorizontalAlignment="Center" FontSize="11"/>
+                                        </Border>
+                                    </Grid>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

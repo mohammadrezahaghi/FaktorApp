@@ -17,6 +17,21 @@
         <helpers:BooleanToColorConverter x:Key="BooleanToColorConverter"/>
         <helpers:BooleanToTextConverter x:Key="BooleanToTextConverter"/>
         <helpers:PaymentMethodToTextConverter x:Key="PaymentMethodToTextConverter"/>
+
+        <Style x:Key="CenterAlignedColumn" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
+            <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
     </Page.Resources>
 
     <Grid>
@@ -25,10 +40,8 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <materialDesign:Card Grid.Row="0"
-                             Margin="16"
-                             Padding="16"
-                             materialDesign:ElevationAssist.Elevation="Dp2">
+        <materialDesign:Card Grid.Row="0" Margin="16" Padding="16" materialDesign:ElevationAssist.Elevation="Dp2"
+                             Background="{DynamicResource SidebarBackgroundBrush}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -36,207 +49,162 @@
                 </Grid.ColumnDefinitions>
 
                 <WrapPanel Orientation="Horizontal">
-
-                    <TextBox x:Name="TxtSearch"
-                             materialDesign:HintAssist.Hint="جستجو (نام، شماره فاکتور)"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             Width="220"
-                             Margin="0,0,10,10"
+                    <TextBox x:Name="TxtSearch" materialDesign:HintAssist.Hint="جستجو (نام، شماره فاکتور)"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}" Width="220" Margin="0,0,10,10"
                              TextChanged="FilterChanged"
-                             Foreground="{DynamicResource MaterialDesignBody}"
-                             CaretBrush="{DynamicResource MaterialDesignBody}"/>
+                             Foreground="{DynamicResource SidebarForegroundBrush}"
+                             materialDesign:HintAssist.Foreground="{DynamicResource SidebarForegroundBrush}"
+                             BorderBrush="{DynamicResource SidebarForegroundBrush}"
+                             CaretBrush="{DynamicResource SidebarForegroundBrush}"/>
 
-                    <ComboBox x:Name="CmbStatusFilter"
-                              materialDesign:HintAssist.Hint="وضعیت چاپ"
-                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                              Width="140"
-                              Margin="0,0,10,10"
+                    <ComboBox x:Name="CmbStatusFilter" materialDesign:HintAssist.Hint="وضعیت چاپ"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}" Width="140" Margin="0,0,10,10"
                               SelectionChanged="FilterChanged"
-                              Foreground="{DynamicResource MaterialDesignBody}">
-
-                        <ComboBoxItem Content="همه وضعیت‌ها"
-                                      IsSelected="True"/>
+                              Foreground="{DynamicResource SidebarForegroundBrush}"
+                              materialDesign:HintAssist.Foreground="{DynamicResource SidebarForegroundBrush}"
+                              BorderBrush="{DynamicResource SidebarForegroundBrush}">
+                        <ComboBoxItem Content="همه وضعیت‌ها" IsSelected="True"/>
                         <ComboBoxItem Content="ثبت شده (در انتظار)"/>
                         <ComboBoxItem Content="در حال چاپ"/>
                         <ComboBoxItem Content="آماده تحویل"/>
                         <ComboBoxItem Content="تحویل شده"/>
                     </ComboBox>
 
-                    <ComboBox x:Name="CmbPaymentFilter"
-                              materialDesign:HintAssist.Hint="وضعیت پرداخت"
-                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                              Width="140"
-                              Margin="0,0,10,10"
+                    <ComboBox x:Name="CmbPaymentFilter" materialDesign:HintAssist.Hint="وضعیت پرداخت"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}" Width="140" Margin="0,0,10,10"
                               SelectionChanged="FilterChanged"
-                              Foreground="{DynamicResource MaterialDesignBody}">
-
-                        <ComboBoxItem Content="همه مالی"
-                                      IsSelected="True"/>
-
-                        <ComboBoxItem Content="تسویه شده (سبز)"
-                                      Foreground="#4CAF50"
-                                      FontWeight="Bold"/>
-
-                        <ComboBoxItem Content="بدهکار (قرمز)"
-                                      Foreground="#F44336"
-                                      FontWeight="Bold"/>
+                              Foreground="{DynamicResource SidebarForegroundBrush}"
+                              materialDesign:HintAssist.Foreground="{DynamicResource SidebarForegroundBrush}"
+                              BorderBrush="{DynamicResource SidebarForegroundBrush}">
+                        <ComboBoxItem Content="همه مالی" IsSelected="True"/>
+                        <ComboBoxItem Content="تسویه شده (سبز)" Foreground="#4CAF50" FontWeight="Bold"/>
+                        <ComboBoxItem Content="بدهکار (قرمز)" Foreground="#F44336" FontWeight="Bold"/>
                     </ComboBox>
-
                 </WrapPanel>
 
-                <Button Grid.Column="1"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                        Click="BtnRefresh_Click"
-                        ToolTip="بروزرسانی لیست">
+                <Button Grid.Column="1" Style="{StaticResource MaterialDesignOutlinedButton}" Click="BtnRefresh_Click" ToolTip="بروزرسانی لیست"
+                        Foreground="{DynamicResource SidebarForegroundBrush}"
+                        BorderBrush="{DynamicResource SidebarForegroundBrush}">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Refresh"
-                                                 VerticalAlignment="Center"
-                                                 Margin="0,0,8,0"/>
-                        <TextBlock Text="بروزرسانی"
-                                   VerticalAlignment="Center"/>
+                        <materialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="بروزرسانی" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </Grid>
         </materialDesign:Card>
 
-        <DataGrid Grid.Row="1"
-                  x:Name="DataGridOrders"
-                  Background="Transparent"
-                  BorderThickness="0"
-                  Margin="16,0,16,16"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  SelectionMode="Single"
-                  materialDesign:DataGridAssist.CellPadding="13 8 8 8"
-                  materialDesign:DataGridAssist.ColumnHeaderPadding="8">
-            <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding InvoiceNumber}"
-                                    Header="شماره"
-                                    Width="1.2*"/>
-                <DataGridTextColumn Binding="{Binding Customer.Name}"
-                                    Header="مشتری"
-                                    Width="2*"/>
-                <DataGridTextColumn Binding="{Binding Date, Converter={StaticResource ShamsiDateConverter}}"
-                                    Header="تاریخ"
-                                    Width="1.5*"/>
-                <DataGridTextColumn Binding="{Binding Date, StringFormat={}{0:HH:mm}}"
-                                    Header="ساعت"
-                                    Width="0.8*"/>
+        <materialDesign:Card Grid.Row="1" Margin="16,0,16,16" Padding="0" UniformCornerRadius="8" materialDesign:ElevationAssist.Elevation="Dp2"
+                             Background="{DynamicResource MaterialDesignCardBackground}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                <DataGridTemplateColumn Header="وضعیت مالی"
-                                        Width="1.5*">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <materialDesign:Chip Content="{Binding IsPaid, Converter={StaticResource BooleanToTextConverter}}"
-                                                 Background="{Binding IsPaid, Converter={StaticResource BooleanToColorConverter}}"
-                                                 Foreground="White"
-                                                 FontSize="11"
-                                                 Height="25"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                <Border Background="{DynamicResource SidebarBackgroundBrush}" Padding="15" CornerRadius="8,8,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ReceiptText" Foreground="{DynamicResource SidebarForegroundBrush}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="لیست تمام فاکتورها" Foreground="{DynamicResource SidebarForegroundBrush}" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
 
-                <DataGridTextColumn Binding="{Binding PaymentMethod, Converter={StaticResource PaymentMethodToTextConverter}}"
-                                    Header="روش"
-                                    Width="1*"/>
-                <DataGridTextColumn Binding="{Binding FinalAmount, StringFormat=N0}"
-                                    Header="مبلغ (ریال)"
-                                    Width="1.5*"
-                                    FontWeight="Bold"/>
+                <DataGrid Grid.Row="1" x:Name="DataGridOrders" Background="{x:Null}" BorderThickness="0"
+                          AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
+                          materialDesign:DataGridAssist.CellPadding="8" 
+                          materialDesign:DataGridAssist.ColumnHeaderPadding="10"
+                          VerticalContentAlignment="Center"
+                          HorizontalContentAlignment="Center">
+                    
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Binding="{Binding InvoiceNumber}" Header="شماره" Width="Auto" MinWidth="80"
+                                            ElementStyle="{StaticResource CenterAlignedColumn}"/>
 
-                <DataGridTemplateColumn Header="وضعیت چاپ"
-                        Width="1.5*">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <materialDesign:Chip Content="{Binding Status}"
-                                                 Style="{StaticResource MaterialDesignOutlineChip}"
-                                                 IsHitTestVisible="False"
-                                                 Margin="0"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                        <DataGridTextColumn Binding="{Binding Customer.Name}" Header="مشتری" Width="1.5*" 
+                                            ElementStyle="{StaticResource CenterAlignedColumn}"/>
 
-                <DataGridTemplateColumn Width="Auto">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Menu materialDesign:MenuAssist.TopLevelMenuItemHeight="30">
-                                    <MenuItem Header="مدیریت"
-                                              Height="30"
-                                              Padding="10,0">
-                                        <MenuItem Header="تغییر وضعیت چاپ">
-                                            <MenuItem Header="ثبت شده (در انتظار)"
-                                                      Click="ChangeStatus_Click"
-                                                      Tag="Pending"/>
+                        <DataGridTextColumn Binding="{Binding Date, Converter={StaticResource ShamsiDateConverter}}" Header="تاریخ" Width="1.2*" 
+                                            ElementStyle="{StaticResource CenterAlignedColumn}"/>
+                        
+                        <DataGridTextColumn Binding="{Binding Date, StringFormat={}{0:HH:mm}}" Header="ساعت" Width="0.8*" 
+                                            ElementStyle="{StaticResource CenterAlignedColumn}"/>
 
-                                            <MenuItem Header="در حال چاپ"
-                                                      Click="ChangeStatus_Click"
-                                                      Tag="Printing"/>
-                                            <MenuItem Header="آماده تحویل"
-                                                      Click="ChangeStatus_Click"
-                                                      Tag="ReadyToDeliver"/>
-                                            <MenuItem Header="تحویل شده"
-                                                      Click="ChangeStatus_Click"
-                                                      Tag="Delivered"/>
-                                        </MenuItem>
-                                        <Separator/>
-                                        <MenuItem Header="تغییر وضعیت مالی">
-                                            <MenuItem Header="پرداخت شده (نقد)"
-                                                      Click="ChangePayment_Click"
-                                                      Tag="Cash"/>
-                                            <MenuItem Header="پرداخت شده (کارت)"
-                                                      Click="ChangePayment_Click"
-                                                      Tag="Card"/>
-                                            <MenuItem Header="پرداخت شده (کارت به کارت)"
-                                                      Click="ChangePayment_Click"
-                                                      Tag="CardToCard"/>
-                                            <MenuItem Header="پرداخت شده (چک)"
-                                                      Click="ChangePayment_Click"
-                                                      Tag="Cheque"/>
-                                            <Separator/>
-                                            <MenuItem Header="پرداخت نشده (بدهکار)"
-                                                      Click="ChangePayment_Click"
-                                                      Tag="None"/>
-                                        </MenuItem>
-                                    </MenuItem>
-                                </Menu>
+                        <DataGridTemplateColumn Header="وضعیت مالی" Width="1.2*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <materialDesign:Chip Content="{Binding IsPaid, Converter={StaticResource BooleanToTextConverter}}"
+                                                             Background="{Binding IsPaid, Converter={StaticResource BooleanToColorConverter}}"
+                                                             Foreground="White" FontSize="11" Height="25"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
-                                <Button Style="{StaticResource MaterialDesignIconButton}"
-                                        ToolTip="چاپ / ذخیره"
-                                        Margin="5,0"
-                                        Click="BtnPrintMenu_Click">
-                                    <materialDesign:PackIcon Kind="Printer"
-                                                             Foreground="Teal"/>
-                                    <Button.ContextMenu>
-                                        <ContextMenu FlowDirection="RightToLeft"
-                                                     FontFamily="Segoe UI">
-                                            <MenuItem Header="چاپ فاکتور (پرینتر)"
-                                                      Click="BtnPrintAction_Click">
-                                                <MenuItem.Icon>
-                                                    <materialDesign:PackIcon Kind="Printer"/>
-                                                </MenuItem.Icon>
+                        <DataGridTextColumn Binding="{Binding PaymentMethod, Converter={StaticResource PaymentMethodToTextConverter}}" Header="روش" Width="1*" 
+                                            ElementStyle="{StaticResource CenterAlignedColumn}"/>
+                        
+                        <DataGridTextColumn Binding="{Binding FinalAmount, StringFormat=N0}" Header="مبلغ (ریال)" Width="1.5*" FontWeight="Bold" 
+                                            ElementStyle="{StaticResource CenterAlignedColumn}"/>
+
+                        <DataGridTemplateColumn Header="وضعیت چاپ" Width="1.5*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <materialDesign:Chip Content="{Binding Status}" Style="{StaticResource MaterialDesignOutlineChip}" 
+                                                             IsHitTestVisible="False" Margin="0"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Menu materialDesign:MenuAssist.TopLevelMenuItemHeight="30">
+                                            <MenuItem Header="مدیریت" Height="30" Padding="10,0">
+                                                <MenuItem Header="تغییر وضعیت چاپ">
+                                                    <MenuItem Header="ثبت شده (در انتظار)" Click="ChangeStatus_Click" Tag="Pending"/>
+                                                    <MenuItem Header="در حال چاپ" Click="ChangeStatus_Click" Tag="Printing"/>
+                                                    <MenuItem Header="آماده تحویل" Click="ChangeStatus_Click" Tag="ReadyToDeliver"/>
+                                                    <MenuItem Header="تحویل شده" Click="ChangeStatus_Click" Tag="Delivered"/>
+                                                </MenuItem>
+                                                <Separator/>
+                                                <MenuItem Header="تغییر وضعیت مالی">
+                                                    <MenuItem Header="پرداخت شده (نقد)" Click="ChangePayment_Click" Tag="Cash"/>
+                                                    <MenuItem Header="پرداخت شده (کارت)" Click="ChangePayment_Click" Tag="Card"/>
+                                                    <MenuItem Header="پرداخت شده (کارت به کارت)" Click="ChangePayment_Click" Tag="CardToCard"/>
+                                                    <MenuItem Header="پرداخت شده (چک)" Click="ChangePayment_Click" Tag="Cheque"/>
+                                                    <Separator/>
+                                                    <MenuItem Header="پرداخت نشده (بدهکار)" Click="ChangePayment_Click" Tag="None"/>
+                                                </MenuItem>
                                             </MenuItem>
-                                            <MenuItem Header="ذخیره تصویر (عکس)"
-                                                      Click="BtnSaveImageAction_Click">
-                                                <MenuItem.Icon>
-                                                    <materialDesign:PackIcon Kind="Image"/>
-                                                </MenuItem.Icon>
-                                            </MenuItem>
-                                        </ContextMenu>
-                                    </Button.ContextMenu>
-                                </Button>
+                                        </Menu>
 
-                                <Button Style="{StaticResource MaterialDesignIconButton}"
-                                        ToolTip="حذف"
-                                        Click="BtnDelete_Click">
-                                    <materialDesign:PackIcon Kind="Delete"
-                                                             Foreground="Red"/>
-                                </Button>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+                                        <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="چاپ / ذخیره" Margin="5,0" Click="BtnPrintMenu_Click" Height="30" Width="30">
+                                            <materialDesign:PackIcon Kind="Printer" Foreground="Teal"/>
+                                            <Button.ContextMenu>
+                                                <ContextMenu FlowDirection="RightToLeft" FontFamily="Segoe UI">
+                                                    <MenuItem Header="چاپ فاکتور (پرینتر)" Click="BtnPrintAction_Click">
+                                                        <MenuItem.Icon><materialDesign:PackIcon Kind="Printer"/></MenuItem.Icon>
+                                                    </MenuItem>
+                                                    <MenuItem Header="ذخیره تصویر (عکس)" Click="BtnSaveImageAction_Click">
+                                                        <MenuItem.Icon><materialDesign:PackIcon Kind="Image"/></MenuItem.Icon>
+                                                    </MenuItem>
+                                                </ContextMenu>
+                                            </Button.ContextMenu>
+                                        </Button>
+
+                                        <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="حذف" Click="BtnDelete_Click" Height="30" Width="30">
+                                            <materialDesign:PackIcon Kind="Delete" Foreground="Red"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </materialDesign:Card>
     </Grid>
 </Page>
