@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <item>
     <version>1.1.0.0</version>
-    <url>https://github.com/mohammadrezahaghi/FaktorApp/releases/download/v1.0.0.0/ShayanfactorSetup.exe</url>
-    <changelog>https://github.com/mohammadrezahaghi/FaktorApp/releases/tag/v1.0.0.0</changelog>
+    <url>https://github.com/mohammadrezahaghi/FaktorApp/releases/download/v1.1.0.0/FactorApp_Setup_v1.1.0.exe</url>
+    <changelog>https://github.com/mohammadrezahaghi/FaktorApp/releases/tag/v1.1.0.0</changelog>
     <mandatory>false</mandatory>
 </item>
