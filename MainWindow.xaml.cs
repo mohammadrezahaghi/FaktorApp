@@ -135,13 +135,18 @@ namespace FactorApp.UI
         // --- مدیریت پنجره (بدون تغییر) ---
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (!CanClose)
+            // اگر اجازه خروج کامل صادر شده (توسط App.xaml.cs)، پنجره بسته شود و کدی اجرا نشود
+            if (CanClose)
             {
-                e.Cancel = true;
-                this.Hide();
-                var app = System.Windows.Application.Current as App;
-                app?.ShowNotification("فاکتور شایان", "برنامه در پس زمینه فعال است.");
+                return;
             }
+
+            // در غیر این صورت (یعنی کاربر ضربدر را زده)، مینیمایز کن و نوتیفیکیشن بده
+            e.Cancel = true; // جلوگیری از بسته شدن
+            this.Hide(); // مخفی کردن پنجره
+
+            // نمایش پیام (فقط وقتی که واقعا مینیمایز شده)
+            (Application.Current as FactorApp.UI.App)?.ShowNotification("چاپخانه پلاس", "برنامه در پس‌زمینه در حال اجراست.");
         }
 
         private void ColorZone_MouseDown(object sender, MouseButtonEventArgs e)

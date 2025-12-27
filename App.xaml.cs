@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using FactorApp.UI.Data;
 using FactorApp.UI.Helpers;
+using FactorApp.UI.Models;
 using MaterialDesignThemes.Wpf;
 
 // مدیریت تداخل‌ها با Alias
@@ -27,82 +28,72 @@ namespace FactorApp.UI
             // جلوگیری از بسته شدن برنامه هنگام بسته شدن آخرین پنجره (برای Tray Icon)
             this.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            // 1. اعمال تم ذخیره شده (سبک اجرا می‌شود)
+            // 1. اعمال تم ذخیره شده (همینجا بماند بهتر است تا پنجره‌ها با تم درست باز شوند)
             ApplySavedTheme();
 
-            // 2. نمایش پنجره لودینگ برای انجام کارهای سنگین (دیتابیس و آپدیت)
+            // 2. نمایش پنجره لودینگ
             var loadingWindow = new LoadingWindow();
-            loadingWindow.OperationCompleted += ContinueStartup; // وقتی کارش تمام شد این متد صدا زده می‌شود
+
+            // گوش دادن به نتیجه‌ای که لودینگ اعلام می‌کند
+            loadingWindow.OperationCompleted += OnLoadingFinished;
+
             loadingWindow.Show();
         }
 
         // این متد زمانی اجرا می‌شود که LoadingWindow کارش تمام شده باشد
-        private void ContinueStartup()
+        // و نتیجه (لاگین شده یا نشده) را به ما می‌دهد
+        private void OnLoadingFinished(LoadingResult result, User? user)
         {
-            bool autoLoginSuccess = false;
-
-            // تلاش برای لاگین خودکار
-            if (CredentialsHelper.GetSavedCredentials(out string savedUser, out string savedPass))
+            if (result == LoadingResult.ShowMain && user != null)
             {
-                if (TryAutoLogin(savedUser, savedPass))
-                {
-                    autoLoginSuccess = true;
-                }
+                // *** حالت 1: لاگین خودکار در لودینگ موفق بوده ***
+                ShowMainWindow(user);
+                ShowNotification("خوش آمدید", $"ورود خودکار با موفقیت انجام شد.\nکاربر: {user.FullName}");
             }
-
-            // اگر لاگین خودکار موفق نبود، پنجره لاگین را نشان بده
-            if (!autoLoginSuccess)
+            else if (result == LoadingResult.ShowLogin)
             {
+                // *** حالت 2: نیاز به لاگین دستی ***
                 var loginWindow = new LoginWindow();
-                bool? result = loginWindow.ShowDialog();
+                bool? dialogResult = loginWindow.ShowDialog();
 
-                if (loginWindow.IsLoggedIn != true)
+                if (loginWindow.IsLoggedIn && loginWindow.User != null)
                 {
-                    // اگر کاربر لاگین نکرد و پنجره را بست، برنامه بسته شود
-                    Shutdown();
-                    return;
+                    // کاربر دستی لاگین کرد
+                    ShowMainWindow(loginWindow.User);
+                }
+                else
+                {
+                    // کاربر پنجره لاگین را بست یا کنسل کرد -> خروج کامل
+                    ExitApplication();
                 }
             }
+            else
+            {
+                // حالت Shutdown (مثلا خطای دیتابیس در لودینگ)
+                ExitApplication();
+            }
+        }
 
-            // نمایش پنجره اصلی
+        private void ShowMainWindow(User user)
+        {
+            // ایجاد پنجره اصلی (می‌توانید آبجکت User را به سازنده آن پاس دهید)
             var mainWindow = new MainWindow();
+            // اگر MainWindow شما ورودی User می‌گیرد: new MainWindow(user);
+
             this.MainWindow = mainWindow;
             mainWindow.Show();
 
             // فعال‌سازی آیکون کنار ساعت
             SetupTrayIcon();
-
-            if (!autoLoginSuccess)
-                ShowNotification("خوش آمدید", "ورود به سیستم با موفقیت انجام شد.");
         }
 
-        private bool TryAutoLogin(string username, string password)
-        {
-            try
-            {
-                using (var context = new AppDbContext())
-                {
-                    var user = context.Users.SingleOrDefault(u => u.Username.ToLower() == username.ToLower());
-                    if (user != null && user.IsActive)
-                    {
-                        return PasswordHelper.VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"AutoLogin Error: {ex.Message}");
-            }
-            return false;
-        }
-
+        // --- متدهای مربوط به تم (بدون تغییر) ---
         public void ApplySavedTheme()
         {
             try
             {
                 bool isDark = false;
-                // خواندن تنظیمات تم از دیتابیس (با هندل کردن خطای احتمالی نبود دیتابیس در لحظه اول)
-                try 
+                try
                 {
                     using (var context = new AppDbContext())
                     {
@@ -113,7 +104,7 @@ namespace FactorApp.UI
                         }
                     }
                 }
-                catch { /* در اجرای اول ممکن است دیتابیس نباشد، پیش‌فرض لایت است */ }
+                catch { }
 
                 var paletteHelper = new PaletteHelper();
                 var theme = paletteHelper.GetTheme();
@@ -148,6 +139,7 @@ namespace FactorApp.UI
             }
         }
 
+        // --- متدهای مربوط به Tray Icon (بدون تغییر) ---
         private void SetupTrayIcon()
         {
             _notifyIcon = new Forms.NotifyIcon();
@@ -176,13 +168,19 @@ namespace FactorApp.UI
 
         public void ShowNotification(string title, string message)
         {
-            if (_notifyIcon != null)
+            // اگر آیکون نابود شده یا نال است، هیچ کاری نکن (جلوگیری از ارور)
+            if (_notifyIcon == null || _notifyIcon.Icon == null) return;
+
+            try
             {
                 _notifyIcon.Visible = true;
                 _notifyIcon.ShowBalloonTip(3000, title, message, Forms.ToolTipIcon.Info);
             }
+            catch
+            {
+                // نادیده گرفتن خطا در لحظه خروج
+            }
         }
-
         public void ShowMainWindow()
         {
             if (MainWindow != null)
@@ -196,19 +194,23 @@ namespace FactorApp.UI
 
         public void ExitApplication()
         {
+            // اول: پنجره اصلی را ببندیم (بدون اینکه نوتیفیکیشن بدهد)
+            if (MainWindow is MainWindow myWindow)
+            {
+                // به پنجره میگوییم که اجازه دارد بسته شود
+                myWindow.CanClose = true;
+                myWindow.Close();
+            }
+
+            // دوم: حالا که پنجره بسته شد، آیکون را نابود کن
             if (_notifyIcon != null)
             {
                 _notifyIcon.Visible = false;
                 _notifyIcon.Dispose();
+                _notifyIcon = null; // نال کردن برای اطمینان
             }
 
-            // بستن پنجره اصلی اگر باز است
-            if (MainWindow is MainWindow myWindow)
-            {
-                myWindow.CanClose = true; // فرض بر این است که پراپرتی CanClose در MainWindow دارید
-                myWindow.Close();
-            }
-            
+            // سوم: خروج نهایی
             Shutdown();
         }
 

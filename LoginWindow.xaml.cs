@@ -1,13 +1,17 @@
-using System.Linq;
 using System.Windows;
 using FactorApp.UI.Data;
-using FactorApp.UI.Helpers;
+using FactorApp.UI.Models;
+using FactorApp.UI.Helpers; // حتما این namespace باشد
+using System.Linq;
+using MessageBox = System.Windows.MessageBox;
 
 namespace FactorApp.UI
 {
     public partial class LoginWindow : Window
     {
-        public bool IsLoggedIn { get; private set; } = false; // نتیجه لاگین
+        // پراپرتی برای انتقال کاربر به App.xaml.cs
+        public User? User { get; private set; }
+        public bool IsLoggedIn { get; private set; } = false;
 
         public LoginWindow()
         {
@@ -21,64 +25,61 @@ namespace FactorApp.UI
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
-                System.Windows.MessageBox.Show("لطفا نام کاربری و رمز عبور را وارد کنید.");
+                MessageBox.Show("لطفا نام کاربری و رمز عبور را وارد کنید.");
                 return;
             }
 
-            using (var context = new AppDbContext())
+            try
             {
-                // جستجوی کاربر (به حروف بزرگ و کوچک حساس نباشد)
-                var user = context.Users.SingleOrDefault(u => u.Username.ToLower() == username.ToLower());
-
-                if (user != null)
+                using (var context = new AppDbContext())
                 {
-                    // بررسی رمز عبور
-                    if (PasswordHelper.VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+                    var user = context.Users.SingleOrDefault(u => u.Username.ToLower() == username.ToLower());
+
+                    if (user != null && user.IsActive)
                     {
-                        if (!user.IsActive)
-                        {
-                            System.Windows.MessageBox.Show("حساب کاربری شما غیرفعال شده است.");
-                            return;
-                        }
-                        // ... (داخل شرط موفقیت آمیز بودن لاگین) ...
                         if (PasswordHelper.VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
                         {
-                            if (!user.IsActive) { /* ... */ return; }
+                            // *** لاگین موفق ***
 
-                            // >>>> بخش جدید: ذخیره اطلاعات اگر تیک زده بود <<<<
+                            // 1. بررسی تیک "به یاد بسپار" و ذخیره اطلاعات
+                            // فرض بر این است که نام چک‌باکس در فایل XAML شما 'chkRememberMe' است
                             if (ChkRememberMe.IsChecked == true)
                             {
-                                // نام کاربری و رمز واقعی را ذخیره می‌کنیم (رمزنگاری شده)
-                                // تا دفعه بعد بتوانیم دوباره لاگین کنیم
                                 CredentialsHelper.SaveCredentials(username, password);
                             }
                             else
                             {
-                                // اگر تیک را برداشت، اطلاعات قبلی را پاک کن
+                                // اگر تیک را برداشته بود، اطلاعات قبلی را پاک کن
                                 CredentialsHelper.ClearCredentials();
                             }
 
-                            IsLoggedIn = true;
+                            // 2. تنظیم پراپرتی‌ها و بستن پنجره
+                            this.User = user;
+                            this.IsLoggedIn = true;
+                            this.DialogResult = true;
                             this.Close();
                         }
-                        IsLoggedIn = true;
-                        this.Close(); // بستن پنجره لاگین
+                        else
+                        {
+                            MessageBox.Show("نام کاربری یا رمز عبور اشتباه است.");
+                        }
                     }
                     else
                     {
-                        System.Windows.MessageBox.Show("نام کاربری یا رمز عبور اشتباه است.");
+                        MessageBox.Show("کاربری یافت نشد یا غیرفعال است.");
                     }
                 }
-                else
-                {
-                    System.Windows.MessageBox.Show("نام کاربری یا رمز عبور اشتباه است.");
-                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show("خطا در برقراری ارتباط با دیتابیس:\n" + ex.Message);
             }
         }
 
         private void BtnExit_Click(object sender, RoutedEventArgs e)
         {
-            System.Windows.Application.Current.Shutdown();
+            this.DialogResult = false;
+            this.Close();
         }
     }
 }
