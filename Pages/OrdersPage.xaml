@@ -18,30 +18,42 @@
         <helpers:BooleanToTextConverter x:Key="BooleanToTextConverter"/>
         <helpers:PaymentMethodToTextConverter x:Key="PaymentMethodToTextConverter"/>
 
+        <Color x:Key="IconGlowColor">#00C49F</Color>
+        <SolidColorBrush x:Key="IconGlowBrush" Color="{StaticResource IconGlowColor}"/>
+
         <Style x:Key="CenterAlignedColumn" TargetType="TextBlock">
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
         <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
-            <Setter Property="Background" Value="{DynamicResource SidebarBackgroundBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Padding" Value="10"/>
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
+        
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource MaterialDesignDataGridCell}">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        </Style>
     </Page.Resources>
 
-    <Grid>
+    <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <materialDesign:Card Grid.Row="0" Margin="16" Padding="16" materialDesign:ElevationAssist.Elevation="Dp2"
-                             Background="{DynamicResource SidebarBackgroundBrush}">
+        <materialDesign:Card Grid.Row="0" Margin="0,0,0,16" Padding="16" UniformCornerRadius="8"
+                             materialDesign:ElevationAssist.Elevation="Dp0"
+                             Background="{DynamicResource CardBackgroundBrush}"
+                             BorderThickness="1"
+                             BorderBrush="{DynamicResource MaterialDesignDivider}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -93,24 +105,47 @@
             </Grid>
         </materialDesign:Card>
 
-        <materialDesign:Card Grid.Row="1" Margin="16,0,16,16" Padding="0" UniformCornerRadius="8" materialDesign:ElevationAssist.Elevation="Dp2"
-                             Background="{DynamicResource MaterialDesignCardBackground}">
+        <materialDesign:Card Grid.Row="1" Margin="0" Padding="0" UniformCornerRadius="8" 
+                             materialDesign:ElevationAssist.Elevation="Dp0"
+                             Background="{DynamicResource CardBackgroundBrush}"
+                             BorderThickness="1"
+                             BorderBrush="{DynamicResource MaterialDesignDivider}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Border Background="{DynamicResource SidebarBackgroundBrush}" Padding="15" CornerRadius="8,8,0,0">
+                <Border Background="{DynamicResource CardBackgroundBrush}" Padding="20" CornerRadius="8,8,0,0"
+                        BorderThickness="0,0,0,1" BorderBrush="{DynamicResource MaterialDesignDivider}">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="ReceiptText" Foreground="{DynamicResource SidebarForegroundBrush}" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="لیست تمام فاکتورها" Foreground="{DynamicResource SidebarForegroundBrush}" FontWeight="Bold" VerticalAlignment="Center"/>
+                        
+                        <Grid Width="40" Height="40" Margin="0,0,15,0">
+                            <Border CornerRadius="12" Background="{StaticResource IconGlowBrush}" Opacity="0.15">
+                                <Border.Effect>
+                                    <BlurEffect Radius="8"/>
+                                </Border.Effect>
+                            </Border>
+                            <materialDesign:PackIcon Kind="ReceiptText" Width="22" Height="22" 
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                     Foreground="{StaticResource IconGlowBrush}"/>
+                        </Grid>
+                        
+                        <TextBlock Text="لیست تمام فاکتورها" VerticalAlignment="Center"
+                                   FontFamily="Iransans" FontWeight="Bold" FontSize="16"
+                                   Foreground="{DynamicResource SidebarForegroundBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <DataGrid Grid.Row="1" x:Name="DataGridOrders" Background="{x:Null}" BorderThickness="0"
+                <DataGrid Grid.Row="1" x:Name="DataGridOrders" 
+                          Background="{x:Null}" 
+                          RowBackground="Transparent"
+                          AlternatingRowBackground="Transparent"
+                          BorderThickness="0"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="{DynamicResource MaterialDesignDivider}"
                           AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
-                          materialDesign:DataGridAssist.CellPadding="8" 
+                          materialDesign:DataGridAssist.CellPadding="13 10 10 10" 
                           materialDesign:DataGridAssist.ColumnHeaderPadding="10"
                           VerticalContentAlignment="Center"
                           HorizontalContentAlignment="Center">
@@ -151,6 +186,7 @@
                                 <DataTemplate>
                                     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <materialDesign:Chip Content="{Binding Status}" Style="{StaticResource MaterialDesignOutlineChip}" 
+                                                             BorderBrush="{DynamicResource MaterialDesignDivider}"
                                                              IsHitTestVisible="False" Margin="0"/>
                                     </Grid>
                                 </DataTemplate>
@@ -161,8 +197,8 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Menu materialDesign:MenuAssist.TopLevelMenuItemHeight="30">
-                                            <MenuItem Header="مدیریت" Height="30" Padding="10,0">
+                                        <Menu materialDesign:MenuAssist.TopLevelMenuItemHeight="30" Background="Transparent">
+                                            <MenuItem Header="مدیریت" Height="30" Padding="10,0" Foreground="{DynamicResource SidebarForegroundBrush}">
                                                 <MenuItem Header="تغییر وضعیت چاپ">
                                                     <MenuItem Header="ثبت شده (در انتظار)" Click="ChangeStatus_Click" Tag="Pending"/>
                                                     <MenuItem Header="در حال چاپ" Click="ChangeStatus_Click" Tag="Printing"/>
@@ -182,7 +218,7 @@
                                         </Menu>
 
                                         <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="چاپ / ذخیره" Margin="5,0" Click="BtnPrintMenu_Click" Height="30" Width="30">
-                                            <materialDesign:PackIcon Kind="Printer" Foreground="Teal"/>
+                                            <materialDesign:PackIcon Kind="Printer" Foreground="{StaticResource IconGlowBrush}"/>
                                             <Button.ContextMenu>
                                                 <ContextMenu FlowDirection="RightToLeft" FontFamily="Segoe UI">
                                                     <MenuItem Header="چاپ فاکتور (پرینتر)" Click="BtnPrintAction_Click">
@@ -196,7 +232,7 @@
                                         </Button>
 
                                         <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="حذف" Click="BtnDelete_Click" Height="30" Width="30">
-                                            <materialDesign:PackIcon Kind="Delete" Foreground="Red"/>
+                                            <materialDesign:PackIcon Kind="Delete" Foreground="#FF5252"/>
                                         </Button>
                                     </StackPanel>
                                 </DataTemplate>

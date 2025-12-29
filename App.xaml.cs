@@ -116,19 +116,27 @@ namespace FactorApp.UI
                 {
                     theme.SetPrimaryColor((MediaColor)MediaColorConverter.ConvertFromString("#FFD700"));
                     theme.SetSecondaryColor((MediaColor)MediaColorConverter.ConvertFromString("#A9A9A9"));
-                    theme.Background = (MediaColor)MediaColorConverter.ConvertFromString("#121212");
+                    theme.Background = (MediaColor)MediaColorConverter.ConvertFromString("#171717");
 
                     Application.Current.Resources["SidebarBackgroundBrush"] = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString("#1E1E1E"));
                     Application.Current.Resources["SidebarForegroundBrush"] = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString("#E0E0E0"));
+
+                    Application.Current.Resources["CardBackgroundBrush"] = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString("#212121"));
+                    Application.Current.Resources["CardForegroundBrush"] = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString("#FFFFFF"));
                 }
                 else
                 {
                     theme.SetPrimaryColor((MediaColor)MediaColorConverter.ConvertFromString("#3F51B5"));
                     theme.SetSecondaryColor((MediaColor)MediaColorConverter.ConvertFromString("#FF4081"));
-                    theme.Background = (MediaColor)MediaColorConverter.ConvertFromString("#fbfbfb");
+                    theme.Background = (MediaColor)MediaColorConverter.ConvertFromString("#F9F9F9");
 
-                    Application.Current.Resources["SidebarBackgroundBrush"] = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString("#f5f5f5"));
+                    Application.Current.Resources["SidebarBackgroundBrush"] = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString("#FFFFFF"));
                     Application.Current.Resources["SidebarForegroundBrush"] = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString("#212121"));
+
+                    Application.Current.Resources["CardBackgroundBrush"] = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString("#FAFAFA"));
+                    Application.Current.Resources["CardForegroundBrush"] = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString("#000000"));
+
+
                 }
 
                 paletteHelper.SetTheme(theme);

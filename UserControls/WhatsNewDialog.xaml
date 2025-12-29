@@ -5,56 +5,84 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             Width="450" FontFamily="Segoe UI" FlowDirection="RightToLeft"
+             Width="450" FontFamily="{DynamicResource MaterialDesignFont}" FlowDirection="RightToLeft"
              Background="Transparent">
 
-    <materialDesign:Card materialDesign:ElevationAssist.Elevation="Dp8" 
-                         Background="Transparent" 
-                         BorderThickness="0">
+    <UserControl.Resources>
+        <Color x:Key="IconGlowColor">#00C49F</Color>
+        <SolidColorBrush x:Key="IconGlowBrush" Color="{StaticResource IconGlowColor}"/>
+    </UserControl.Resources>
 
-        <Border Background="{DynamicResource MaterialDesignPaper}" 
-                CornerRadius="15" 
-                ClipToBounds="True">
-            
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+    <materialDesign:Card materialDesign:ElevationAssist.Elevation="Dp0" 
+                         Background="{DynamicResource CardBackgroundBrush}" 
+                         BorderThickness="1" 
+                         BorderBrush="{DynamicResource MaterialDesignDivider}"
+                         UniformCornerRadius="15">
 
-                <materialDesign:ColorZone Mode="PrimaryMid" Grid.Row="0" Padding="20">
-                    <StackPanel HorizontalAlignment="Center">
-                        <Border Background="White" CornerRadius="50" Width="60" Height="60" Margin="0,0,0,10">
-                            <materialDesign:PackIcon Kind="RocketLaunch" Width="30" Height="30" 
-                                                     Foreground="{DynamicResource PrimaryHueMidBrush}" 
-                                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        
-                        <TextBlock x:Name="TxtTitle" Text="عنوان آپدیت" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center"/>
-                        <TextBlock x:Name="TxtVersion" Text="نسخه..." Opacity="0.8" FontSize="12" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </materialDesign:ColorZone>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <RowDefinition Height="*"/>    <RowDefinition Height="Auto"/> </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="1" Margin="25">
-                    <TextBlock x:Name="TxtDescription" Text="توضیحات..." Margin="0,0,0,15" Opacity="0.8"/>
+            <StackPanel Grid.Row="0" Margin="0,30,0,10">
+                <Grid Width="80" Height="80" Margin="0,0,0,15">
+                    <Border CornerRadius="30" Background="{StaticResource IconGlowBrush}" Opacity="0.15">
+                        <Border.Effect>
+                            <BlurEffect Radius="20"/>
+                        </Border.Effect>
+                    </Border>
+                    <Border CornerRadius="30" BorderThickness="1.5" BorderBrush="{StaticResource IconGlowBrush}" Opacity="0.3"/>
+                    <materialDesign:PackIcon Kind="RocketLaunch" Width="40" Height="40" 
+                                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                                             Foreground="{StaticResource IconGlowBrush}"/>
+                </Grid>
 
+                <TextBlock x:Name="TxtTitle" Text="عنوان آپدیت" FontWeight="Bold" FontSize="20" 
+                           HorizontalAlignment="Center" Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                
+                <Border Background="{StaticResource IconGlowBrush}" CornerRadius="6" Padding="10,2" 
+                        HorizontalAlignment="Center" Margin="0,8,0,0" Opacity="0.9">
+                    <TextBlock x:Name="TxtVersion" Text="نسخه..." FontSize="12" FontWeight="Bold" Foreground="White"/>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Margin="30,10,30,20">
+                <TextBlock x:Name="TxtDescription" Text="توضیحات..." Margin="0,0,0,20" 
+                           Opacity="0.7" TextWrapping="Wrap" Foreground="{DynamicResource SidebarForegroundBrush}"
+                           HorizontalAlignment="Center" TextAlignment="Center"/>
+
+                <ScrollViewer MaxHeight="250" VerticalScrollBarVisibility="Auto">
                     <ItemsControl x:Name="LstFeatures">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                    <materialDesign:PackIcon Kind="CheckCircle" Foreground="Green" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                                </StackPanel>
+                                <Border Margin="0,0,0,8" Padding="12" CornerRadius="8" 
+                                        Background="{DynamicResource MaterialDesignDivider}" 
+                                        Opacity="0.8">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="CheckCircle" Foreground="{StaticResource IconGlowBrush}" 
+                                                                 Margin="0,0,10,0" VerticalAlignment="Center" Width="20" Height="20"/>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Center" 
+                                                   Foreground="{DynamicResource SidebarForegroundBrush}" FontSize="13" FontWeight="Medium"/>
+                                    </StackPanel>
+                                </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                </StackPanel>
+                </ScrollViewer>
+            </StackPanel>
 
-                <Button Grid.Row="2" Margin="20" Content="متوجه شدم" 
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"/>
-            </Grid>
-        </Border>
+            <Button Grid.Row="2" Margin="30,0,30,30" 
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    Background="{StaticResource IconGlowBrush}" 
+                    BorderBrush="{StaticResource IconGlowBrush}"
+                    Height="45"
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="CheckBold" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="متوجه شدم" VerticalAlignment="Center" FontWeight="Bold"/>
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+        </Grid>
     </materialDesign:Card>
 </UserControl>

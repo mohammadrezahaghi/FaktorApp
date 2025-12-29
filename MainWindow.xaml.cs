@@ -1,105 +1,197 @@
 ﻿using System;
-using System.Collections.Generic; // اضافه شد برای List
-using System.Linq; // اضافه شد برای جستجو در لیست
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
+using System.Windows.Navigation; // این برای NavigationEventArgs ضروری است
 using FactorApp.Models;
 using FactorApp.UI.Pages;
 using MaterialDesignThemes.Wpf;
 using Application = System.Windows.Application;
-using Brush = System.Windows.Media.Brush;
-using Brushes = System.Windows.Media.Brushes;
+using Button = System.Windows.Controls.Button;
 
 namespace FactorApp.UI
 {
     public partial class MainWindow : Window
     {
-        // --- تنظیمات سیستم آپدیت ---
-        // لینک فایل RAW جیسون
         private const string ChangelogUrl = "https://raw.githubusercontent.com/mohammadrezahaghi/FaktorApp/main/changelog.json";
-
         public bool CanClose { get; set; } = false;
+        private List<Button> _menuButtons;
 
-        // --- متغیرهای کش کردن صفحات ---
-        private DashboardPage _dashboardPage;
-        private CreateInvoicePage _createInvoicePage;
-        private OrdersPage _ordersPage;
-        private CustomersPage _customersPage;
-        private ServicesPage _servicesPage;
-        private SettingsPage _settingsPage;
+        // صفحات کش شده (ممکن است در ابتدا نال باشند)
+        private DashboardPage? _dashboardPage;
+        private CreateInvoicePage? _createInvoicePage;
+        private OrdersPage? _ordersPage;
+        private ServicesPage? _servicesPage;
+        private CustomersPage? _customersPage;
+        private SettingsPage? _settingsPage;
 
         public MainWindow()
         {
-            InitializeComponent();
+            InitializeComponent(); // اگر XAML درست باشد، این خطا رفع می‌شود
 
-            // نمایش نسخه برنامه
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            // فرض بر اینکه TxtVersion دارید
-            if (FindName("TxtVersion") is System.Windows.Controls.TextBlock txt)
+            // لیست دکمه‌های منو
+            _menuButtons = new List<Button>
             {
-                txt.Text = $"نسخه {version.Major}.{version.Minor}.{version.Build}";
-            }
+                BtnDashboard, BtnNewInvoice, BtnOrders, BtnServices, BtnCustomers, BtnSettings
+            };
 
-            // باز کردن داشبورد
-            BtnDashboard_Click(null, null);
+            // انتخاب پیش‌فرض داشبورد
+            BtnDashboard_Click(BtnDashboard, null);
 
-            // اتصال رویداد لود شدن
             this.Loaded += MainWindow_Loaded;
         }
 
-        // --- رویداد لود شدن پنجره ---
+        // --- متد جدید و بهینه تغییر وضعیت ---
+        private void UpdateSidebarUI(Button? activeButton)
+        {
+            if (activeButton == null) return;
+
+            // 1. همه دکمه‌ها را غیرفعال کن (Uid را خالی کن)
+            foreach (var btn in _menuButtons)
+            {
+                btn.Uid = "";
+            }
+
+            // 2. دکمه کلیک شده را فعال کن
+            activeButton.Uid = "Active";
+        }
+
+        private void MainContentFrame_Navigated(object sender, NavigationEventArgs e)
+        {
+            if (e.Content == null) return;
+
+            // چک کردن نوع صفحه‌ی باز شده
+            var pageContent = e.Content;
+
+            if (pageContent is DashboardPage)
+            {
+                // در داشبورد هدر را مخفی کن
+                PageHeaderArea.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                // در بقیه صفحات هدر را نشان بده و اطلاعاتش را پر کن
+                PageHeaderArea.Visibility = Visibility.Visible;
+
+                if (pageContent is CreateInvoicePage)
+                {
+                    SetPageHeader("ثبت فاکتور جدید", "صدور فاکتور فروش کالا و خدمات", PackIconKind.FileDocumentPlusOutline);
+                }
+                else if (pageContent is OrdersPage)
+                {
+                    SetPageHeader("لیست سفارشات", "مدیریت و پیگیری فاکتورهای ثبت شده", PackIconKind.FormatListBulleted);
+                }
+                else if (pageContent is CustomersPage)
+                {
+                    SetPageHeader("مدیریت مشتریان", "افزودن و ویرایش لیست مشتریان", PackIconKind.AccountGroupOutline);
+                }
+                else if (pageContent is ServicesPage)
+                {
+                    SetPageHeader("مدیریت خدمات", "تعریف تعرفه‌ها و خدمات چاپ", PackIconKind.PrinterSettings);
+                }
+                else if (pageContent is SettingsPage)
+                {
+                    SetPageHeader("تنظیمات سیستم", "مدیریت مشخصات فروشگاه، ظاهر و امنیت", PackIconKind.CogOutline);
+                }
+            }
+        }
+
+        // تابع کمکی برای تنظیم سریع هدر
+        private void SetPageHeader(string title, string subtitle, PackIconKind icon)
+        {
+            TxtPageTitle.Text = title;
+            TxtPageSubtitle.Text = subtitle;
+            PageHeaderIcon.Kind = icon;
+        }
+
+        private void NavigateTo(object page)
+        {
+            if (PlaceholderGrid != null) PlaceholderGrid.Visibility = Visibility.Collapsed;
+            MainContentFrame.Navigate(page);
+        }
+
+        // --- رویدادهای کلیک منو ---
+        private void BtnDashboard_Click(object? sender, RoutedEventArgs? e)
+        {
+            UpdateSidebarUI(sender as Button);
+            if (_dashboardPage == null) _dashboardPage = new DashboardPage();
+            NavigateTo(_dashboardPage);
+        }
+
+        private void BtnNewInvoice_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateSidebarUI(sender as Button);
+            if (_createInvoicePage == null) _createInvoicePage = new CreateInvoicePage();
+            NavigateTo(_createInvoicePage);
+        }
+
+        private void BtnOrders_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateSidebarUI(sender as Button);
+
+            // تغییر مهم: به جای استفاده از نمونه کش شده، هر بار یک نمونه جدید بساز
+            // این باعث می‌شود سازنده (Constructor) و متد Loaded صفحه دوباره اجرا شوند و اطلاعات تازه شود.
+            _ordersPage = new OrdersPage();
+
+            NavigateTo(_ordersPage);
+        }
+
+        private void BtnServices_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateSidebarUI(sender as Button);
+            if (_servicesPage == null) _servicesPage = new ServicesPage();
+            NavigateTo(_servicesPage);
+        }
+
+        private void BtnCustomers_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateSidebarUI(sender as Button);
+            if (_customersPage == null) _customersPage = new CustomersPage();
+            NavigateTo(_customersPage);
+        }
+
+        private void BtnSettings_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateSidebarUI(sender as Button);
+            if (_settingsPage == null) _settingsPage = new SettingsPage();
+            NavigateTo(_settingsPage);
+        }
+
+        // --- سایر متدها ---
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             await Task.Delay(1500);
             await CheckAndShowChangelog();
         }
 
-        // --- منطق دریافت و نمایش تغییرات ---
-        // --- منطق دریافت و نمایش تغییرات ---
         private async Task CheckAndShowChangelog()
         {
             try
             {
-                // 1. دریافت نسخه فعلی برنامه به صورت دقیق (3 رقمی)
                 var assemblyVer = Assembly.GetExecutingAssembly().GetName().Version;
-                // تبدیل 1.0.0.0 به 1.0.0
+                if (assemblyVer == null) return;
+
                 var currentVersion = $"{assemblyVer.Major}.{assemblyVer.Minor}.{assemblyVer.Build}";
-
-                // 2. دریافت آخرین نسخه ذخیره شده
                 var lastRunVersion = VersionStorage.GetLastRunVersion();
-
-                System.Diagnostics.Debug.WriteLine($"App Version: {currentVersion}");
-                System.Diagnostics.Debug.WriteLine($"Last Run: {lastRunVersion}");
-
-                // 3. چک کردن (برای تست فعلا True است)
-                if (currentVersion != lastRunVersion) // در نهایت بکنید: if (currentVersion != lastRunVersion)
+                //currentVersion != lastRunVersion
+                if (currentVersion != lastRunVersion)
                 {
                     using (HttpClient client = new HttpClient())
                     {
                         client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; FactorApp/1.0)");
-
-                        // دانلود جیسون
                         string jsonContent = await client.GetStringAsync(ChangelogUrl);
-                        System.Diagnostics.Debug.WriteLine($"JSON Downloaded: {jsonContent}");
-
                         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-                        // تبدیل لیست
                         var allChangelogs = JsonSerializer.Deserialize<List<ChangelogModel>>(jsonContent, options);
 
                         if (allChangelogs != null)
                         {
-                            // *** جستجوی نسخه ***
-                            // اینجا چک میکنیم کدام آیتم جیسون با نسخه 1.0.0 برابر است
-                            // استفاده از Trim برای حذف فاصله‌های احتمالی
-                            var targetLog = allChangelogs.FirstOrDefault(x =>
-                                x.Version.Trim() == currentVersion.Trim()
-                            );
+                            var targetLog = allChangelogs.FirstOrDefault(x => x.Version.Trim() == currentVersion.Trim());
                             if (targetLog != null)
                             {
                                 var view = new WhatsNewDialog();
@@ -107,125 +199,35 @@ namespace FactorApp.UI
                                 view.TxtVersion.Text = $"نسخه {targetLog.Version}";
                                 view.TxtDescription.Text = targetLog.Description;
                                 view.LstFeatures.ItemsSource = targetLog.Features;
-
                                 await DialogHost.Show(view, "RootDialog");
-                            }
-                            else
-                            {
-                                // اگر وارد اینجا شد یعنی نسخه اپ شما با هیچکدام از نسخه‌های جیسون یکی نیست
-                                System.Diagnostics.Debug.WriteLine("Warning: No changelog found for version " + currentVersion);
-
-                                // (اختیاری برای تست): اگر پیدا نشد، اولی را نشان بده تا مطمئن شی کار میکنه
-                                // var fallback = allChangelogs.FirstOrDefault();
-                                // if(fallback != null) { ... show fallback ... }
                             }
                         }
                     }
-
-                    // 4. ذخیره نسخه جدید
                     VersionStorage.SaveNewVersion(currentVersion);
                 }
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"CRITICAL ERROR: {ex.Message}");
-            }
+            catch { }
         }
 
-        // --- مدیریت پنجره (بدون تغییر) ---
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            // اگر اجازه خروج کامل صادر شده (توسط App.xaml.cs)، پنجره بسته شود و کدی اجرا نشود
-            if (CanClose)
-            {
-                return;
-            }
-
-            // در غیر این صورت (یعنی کاربر ضربدر را زده)، مینیمایز کن و نوتیفیکیشن بده
-            e.Cancel = true; // جلوگیری از بسته شدن
-            this.Hide(); // مخفی کردن پنجره
-
-            // نمایش پیام (فقط وقتی که واقعا مینیمایز شده)
-            (Application.Current as FactorApp.UI.App)?.ShowNotification("چاپخانه پلاس", "برنامه در پس‌زمینه در حال اجراست.");
+            if (CanClose) return;
+            e.Cancel = true;
+            this.Hide();
+            (Application.Current as FactorApp.UI.App)?.ShowNotification("چاپخانه پلاس", "برنامه در پس‌زمینه فعال است.");
         }
 
         private void ColorZone_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                if (e.ClickCount == 2)
-                {
-                    BtnMaximize_Click(sender, e);
-                    return;
-                }
+                if (e.ClickCount == 2) { BtnMaximize_Click(sender, e); return; }
                 this.DragMove();
             }
         }
 
         private void BtnClose_Click(object sender, RoutedEventArgs e) => this.Close();
-
-
-        private void BtnMaximize_Click(object sender, RoutedEventArgs e)
-        {
-            if (this.WindowState == WindowState.Normal)
-                this.WindowState = WindowState.Maximized;
-            else
-                this.WindowState = WindowState.Normal;
-        }
-
+        private void BtnMaximize_Click(object sender, RoutedEventArgs e) => this.WindowState = (this.WindowState == WindowState.Normal) ? WindowState.Maximized : WindowState.Normal;
         private void BtnMinimize_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;
-
-        private void Button_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            ((System.Windows.Controls.Button)sender).Foreground = Brushes.Red;
-        }
-
-        private void Button_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            ((System.Windows.Controls.Button)sender).Foreground = (Brush)new BrushConverter().ConvertFrom("#FF5555");
-        }
-
-        // --- نویگیشن ---
-        private void NavigateTo(object page)
-        {
-            if (PlaceholderGrid != null) PlaceholderGrid.Visibility = Visibility.Collapsed;
-            MainContentFrame.Navigate(page);
-        }
-
-        private void BtnDashboard_Click(object sender, RoutedEventArgs e)
-        {
-            if (_dashboardPage == null) _dashboardPage = new DashboardPage();
-            NavigateTo(_dashboardPage);
-        }
-
-        private void BtnNewInvoice_Click(object sender, RoutedEventArgs e)
-        {
-            if (_createInvoicePage == null) _createInvoicePage = new CreateInvoicePage();
-            NavigateTo(_createInvoicePage);
-        }
-
-        private void BtnOrders_Click(object sender, RoutedEventArgs e)
-        {
-            if (_ordersPage == null) _ordersPage = new OrdersPage();
-            NavigateTo(_ordersPage);
-        }
-
-        private void BtnCustomers_Click(object sender, RoutedEventArgs e)
-        {
-            if (_customersPage == null) _customersPage = new CustomersPage();
-            NavigateTo(_customersPage);
-        }
-
-        private void BtnServices_Click(object sender, RoutedEventArgs e)
-        {
-            if (_servicesPage == null) _servicesPage = new ServicesPage();
-            NavigateTo(_servicesPage);
-        }
-
-        private void BtnSettings_Click(object sender, RoutedEventArgs e)
-        {
-            if (_settingsPage == null) _settingsPage = new SettingsPage();
-            NavigateTo(_settingsPage);
-        }
     }
 }

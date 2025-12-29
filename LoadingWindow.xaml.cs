@@ -71,8 +71,16 @@ namespace FactorApp.UI
             try
             {
                 AutoUpdater.RunUpdateAsAdmin = false;
+
+                // اطمینان از اینکه ایونت فقط یکبار متصل شود
+                AutoUpdater.CheckForUpdateEvent -= AutoUpdater_OnCheckForUpdateEvent;
                 AutoUpdater.CheckForUpdateEvent += AutoUpdater_OnCheckForUpdateEvent;
-                string updateUrl = "https://raw.githubusercontent.com/mohammadrezahaghi/FaktorApp/main/update.xml";
+
+                // >> رفع مشکل کش شدن گیت‌هاب <<
+                // اضافه کردن یک عدد تصادفی (زمان فعلی) به انتهای لینک باعث می‌شود همیشه فایل جدید دانلود شود
+                string baseUpdateUrl = "https://raw.githubusercontent.com/mohammadrezahaghi/FaktorApp/main/update.xml";
+                string updateUrl = $"{baseUpdateUrl}?t={DateTime.Now.Ticks}";
+
                 AutoUpdater.Start(updateUrl);
             }
             catch
