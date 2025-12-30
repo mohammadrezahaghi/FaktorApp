@@ -1,0 +1,261 @@
+﻿<Window x:Class="FactorApp.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="فاکتور شایان" Height="750" Width="1150" Icon="logo.ico"
+        WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FlowDirection="RightToLeft"
+        TextElement.Foreground="{DynamicResource SidebarForegroundBrush}" 
+        Background="{DynamicResource MaterialDesignPaper}"
+        Closing="Window_Closing">
+
+    <Window.Resources>
+        <Color x:Key="SoftGreenColor">#00C49F</Color>
+        <SolidColorBrush x:Key="SoftGreenBrush" Color="{StaticResource SoftGreenColor}"/>
+        
+        <Style x:Key="SmartSidebarButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Height" Value="Auto"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/> 
+            <Setter Property="Margin" Value="0,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="Transparent">
+                            
+                            <Grid VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="70"/> <RowDefinition Height="Auto"/> 
+                                </Grid.RowDefinitions>
+
+                                <Border x:Name="Indicator" Grid.Row="0" Width="4" Height="0" 
+                                        CornerRadius="0,4,4,0" Background="{StaticResource SoftGreenBrush}" 
+                                        HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                        Margin="0,0,-2,0" Opacity="0">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="{StaticResource SoftGreenColor}" BlurRadius="8" ShadowDepth="0" Opacity="0.6"/>
+                                    </Border.Effect>
+                                </Border>
+
+                                <Grid Grid.Row="0" Width="70" Height="70" HorizontalAlignment="Center">
+                                    <Border x:Name="GlowCircle" Width="60" Height="60" CornerRadius="100"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            RenderTransformOrigin="0.5,0.5" Opacity="0">
+                                        <Border.Background>
+                                            <RadialGradientBrush GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
+                                                <GradientStop Color="#8000C49F" Offset="0"/> 
+                                                <GradientStop Color="Transparent" Offset="1"/>
+                                            </RadialGradientBrush>
+                                        </Border.Background>
+                                        <Border.Effect>
+                                            <BlurEffect Radius="20"/>
+                                        </Border.Effect>
+                                        <Border.RenderTransform>
+                                            <ScaleTransform x:Name="PulseScale" ScaleX="1" ScaleY="1"/>
+                                        </Border.RenderTransform>
+                                    </Border>
+
+                                    <Border x:Name="MainBox" Width="50" Height="50" CornerRadius="18" 
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Background="Transparent" BorderThickness="0">
+                                        <materialDesign:PackIcon x:Name="Icon" Kind="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" 
+                                                               Width="24" Height="24" 
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource SidebarForegroundBrush}" Opacity="0.5"/>
+                                    </Border>
+                                </Grid>
+
+                                <TextBlock Grid.Row="1" x:Name="Text" Text="{TemplateBinding Content}" 
+                                           FontSize="11" HorizontalAlignment="Center" Margin="0,-10,0,0"
+                                           Foreground="{DynamicResource SidebarForegroundBrush}" Opacity="0.5"/>
+                            </Grid>
+                        </Grid>
+                        
+                        <ControlTemplate.Triggers>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="Uid" Value=""/> 
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Icon" Property="Opacity" Value="1"/>
+                                <Setter TargetName="Text" Property="Opacity" Value="1"/>
+                                <Setter TargetName="MainBox" Property="Background" Value="#10888888"/>
+                            </MultiTrigger>
+
+                            <Trigger Property="Uid" Value="Active">
+                                <Setter TargetName="Icon" Property="Foreground" Value="{StaticResource SoftGreenBrush}"/>
+                                <Setter TargetName="Icon" Property="Opacity" Value="1"/>
+                                <Setter TargetName="Text" Property="Opacity" Value="1"/>
+                                <Setter TargetName="MainBox" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#2600C49F" Offset="0"/>
+                                            <GradientStop Color="#0D00C49F" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="Indicator" Property="Height" Value="40"/>
+                                <Setter TargetName="Indicator" Property="Opacity" Value="1"/>
+                                <Setter TargetName="GlowCircle" Property="Opacity" Value="0.8"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard Name="PulseAnimation">
+                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                            <DoubleAnimation Storyboard.TargetName="PulseScale" Storyboard.TargetProperty="ScaleX" From="1.0" To="1.4" Duration="0:0:2"/>
+                                            <DoubleAnimation Storyboard.TargetName="PulseScale" Storyboard.TargetProperty="ScaleY" From="1.0" To="1.4" Duration="0:0:2"/>
+                                            <DoubleAnimation Storyboard.TargetName="GlowCircle" Storyboard.TargetProperty="Opacity" From="0.5" To="0.9" Duration="0:0:2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="PulseAnimation"/>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TitleBarButtonStyle" TargetType="Button" BasedOn="{StaticResource MaterialDesignToolForegroundButton}">
+            <Setter Property="Width" Value="40"/> <Setter Property="Height" Value="40"/>
+            <Setter Property="Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
+            <Setter Property="Opacity" Value="0.7"/>
+        </Style>
+    </Window.Resources>
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="5" />
+    </WindowChrome.WindowChrome>
+
+    <materialDesign:DialogHost Identifier="RootDialog" DialogTheme="Inherit">
+        <Grid>
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
+                            <Setter Property="Margin" Value="8"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <materialDesign:ColorZone Grid.Row="0" Mode="Standard" Background="Transparent" materialDesign:ElevationAssist.Elevation="Dp0" MouseDown="ColorZone_MouseDown">
+                <DockPanel LastChildFill="False" Margin="10,10,10,0">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="0,0,10,0">
+                        <materialDesign:PackIcon Kind="Printer" VerticalAlignment="Center" Margin="0,0,10,0" 
+                                               Foreground="{StaticResource SoftGreenBrush}" Width="24" Height="24"/>
+                        <TextBlock Text="فاکتور شایان" VerticalAlignment="Center" FontWeight="Bold" FontSize="15" 
+                                   Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                        <Button Style="{StaticResource TitleBarButtonStyle}" Click="BtnClose_Click"><materialDesign:PackIcon Kind="Close"/></Button>
+                        <Button Style="{StaticResource TitleBarButtonStyle}" Click="BtnMaximize_Click"><materialDesign:PackIcon Kind="WindowMaximize"/></Button>
+                        <Button Style="{StaticResource TitleBarButtonStyle}" Click="BtnMinimize_Click"><materialDesign:PackIcon Kind="WindowMinimize"/></Button>
+                    </StackPanel>
+                </DockPanel>
+            </materialDesign:ColorZone>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="95"/> 
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}">
+                    <Border BorderThickness="0,0,1,0" BorderBrush="{DynamicResource MaterialDesignDivider}"/>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Hidden">
+                        <StackPanel Margin="0,20">
+                            <Button x:Name="BtnDashboard" Tag="ViewDashboardOutline" Content="داشبورد"
+                                    Style="{StaticResource SmartSidebarButtonStyle}" Click="BtnDashboard_Click"/>
+
+                            <Button x:Name="BtnNewInvoice" Tag="FileDocumentPlusOutline" Content="ثبت فاکتور"
+                                    Style="{StaticResource SmartSidebarButtonStyle}" Click="BtnNewInvoice_Click"/>
+
+                            <Button x:Name="BtnOrders" Tag="FormatListBulleted" Content="سفارشات"
+                                    Style="{StaticResource SmartSidebarButtonStyle}" Click="BtnOrders_Click"/>
+                                    
+                            <Button x:Name="BtnCustomers" Tag="AccountGroupOutline" Content="مشتریان"
+                                    Style="{StaticResource SmartSidebarButtonStyle}" Click="BtnCustomers_Click"/>
+
+                            <Button x:Name="BtnServices" Tag="PrinterSettings" Content="خدمات"
+                                    Style="{StaticResource SmartSidebarButtonStyle}" Click="BtnServices_Click"/>
+
+                            <Separator Background="{DynamicResource SidebarForegroundBrush}" Opacity="0.1" Margin="20,15"/>
+
+                            <Button x:Name="BtnSettings" Tag="CogOutline" Content="تنظیمات"
+                                    Style="{StaticResource SmartSidebarButtonStyle}" Click="BtnSettings_Click"/>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- <Grid VerticalAlignment="Bottom" Margin="0,0,0,20" HorizontalAlignment="Center">
+                         <StackPanel>
+                            <Border Width="40" Height="40" CornerRadius="20" Background="#15888888" HorizontalAlignment="Center">
+                                <Grid>
+                                    <materialDesign:PackIcon Kind="Account" Width="22" Height="22" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                                                           Foreground="{DynamicResource SidebarForegroundBrush}" Opacity="0.8"/>
+                                    <Border Width="10" Height="10" CornerRadius="5" Background="{StaticResource SoftGreenBrush}" 
+                                            HorizontalAlignment="Right" VerticalAlignment="Bottom" BorderThickness="2" 
+                                            BorderBrush="{DynamicResource SidebarBackgroundBrush}"/>
+                                </Grid>
+                            </Border>
+                         </StackPanel>
+                    </Grid> -->
+                </Grid>
+
+                <Grid Grid.Column="1" Background="{DynamicResource MaterialDesignPaper}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> 
+                        <RowDefinition Height="*"/>    
+                    </Grid.RowDefinitions>
+
+                    <Grid x:Name="PageHeaderArea" Grid.Row="0" Margin="20,20,20,0" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Width="55" Height="55" CornerRadius="14" 
+                                BorderThickness="1.5" BorderBrush="{StaticResource SoftGreenBrush}">
+                            <Border.Background>
+                                <SolidColorBrush Color="{StaticResource SoftGreenColor}" Opacity="0.08"/>
+                            </Border.Background>
+                            
+                            <materialDesign:PackIcon x:Name="PageHeaderIcon" Kind="FileDocument" 
+                                                   Width="28" Height="28" 
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="{StaticResource SoftGreenBrush}"/>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
+                            <TextBlock x:Name="TxtPageTitle" Text="عنوان صفحه" 
+                                       FontSize="22" FontWeight="Bold" FontFamily="Segoe UI"
+                                       Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                            
+                            <TextBlock x:Name="TxtPageSubtitle" Text="توضیحات" 
+                                       FontSize="13" Opacity="0.6" Margin="0,4,0,0"
+                                       Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Frame x:Name="MainContentFrame" Grid.Row="1" NavigationUIVisibility="Hidden" Margin="20" Navigated="MainContentFrame_Navigated"/>
+                    
+                    <Grid x:Name="PlaceholderGrid" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.05" Panel.ZIndex="-1">
+                         <materialDesign:PackIcon Kind="Printer" Width="200" Height="200" Foreground="{DynamicResource MaterialDesignBody}"/>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+    </materialDesign:DialogHost>
+</Window>

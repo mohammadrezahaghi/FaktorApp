@@ -1,0 +1,214 @@
+<Page x:Class="FactorApp.UI.Pages.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+      mc:Ignorable="d"
+      d:DesignHeight="900"
+      d:DesignWidth="1000"
+      Title="تنظیمات"
+      FlowDirection="RightToLeft"
+      TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+      TextElement.FontWeight="Regular"
+      TextElement.FontSize="13"
+      TextOptions.TextFormattingMode="Ideal"
+      FontFamily="{DynamicResource MaterialDesignFont}">
+
+    <Page.Resources>
+        <Color x:Key="IconGlowColor">#00C49F</Color>
+        <SolidColorBrush x:Key="IconGlowBrush" Color="{StaticResource IconGlowColor}"/>
+
+        <Style x:Key="SettingCardStyle" TargetType="materialDesign:Card">
+            <Setter Property="UniformCornerRadius" Value="12"/>
+            <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp0"/>
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}"/>
+            <Setter Property="Margin" Value="0,0,0,24"/>
+        </Style>
+
+        <Style x:Key="SettingTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
+            <Setter Property="materialDesign:HintAssist.Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource SidebarForegroundBrush}"/>
+        </Style>
+        
+        <Style x:Key="SettingPasswordBoxStyle" TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
+            <Setter Property="materialDesign:HintAssist.Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource SidebarForegroundBrush}"/>
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <Grid Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.5*"/>
+                <ColumnDefinition Width="24"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <materialDesign:Card Style="{StaticResource SettingCardStyle}">
+                    <StackPanel>
+                        <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource MaterialDesignDivider}" Padding="20">
+                            <StackPanel Orientation="Horizontal">
+                                <Grid Width="40" Height="40" Margin="0,0,15,0">
+                                    <Border CornerRadius="12" Background="{StaticResource IconGlowBrush}" Opacity="0.15">
+                                        <Border.Effect>
+                                            <BlurEffect Radius="8"/>
+                                        </Border.Effect>
+                                    </Border>
+                                    <materialDesign:PackIcon Kind="StoreEdit" Width="22" Height="22" 
+                                                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                             Foreground="{StaticResource IconGlowBrush}"/>
+                                </Grid>
+                                <TextBlock Text="مشخصات چاپخانه (نمایش در فاکتور)" VerticalAlignment="Center" 
+                                           FontFamily="Iransans" FontWeight="Bold" FontSize="15"
+                                           Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel Margin="24">
+                            <TextBox x:Name="TxtStoreName" materialDesign:HintAssist.Hint="نام فروشگاه / چاپخانه" Style="{StaticResource SettingTextBoxStyle}"/>
+                            <TextBox x:Name="TxtPhone" materialDesign:HintAssist.Hint="شماره تماس" Style="{StaticResource SettingTextBoxStyle}"/>
+                            <TextBox x:Name="TxtAddress" materialDesign:HintAssist.Hint="آدرس" Style="{StaticResource SettingTextBoxStyle}" 
+                                     Height="80" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                            <TextBox x:Name="TxtFooter" materialDesign:HintAssist.Hint="متن تشکر پایین فاکتور" Style="{StaticResource SettingTextBoxStyle}" Margin="0,0,0,25"/>
+
+                            <Button Click="BtnSaveInfo_Click" 
+                                    Style="{StaticResource MaterialDesignRaisedButton}" 
+                                    HorizontalAlignment="Right" Width="160" Height="40"
+                                    Background="{StaticResource IconGlowBrush}" BorderBrush="{StaticResource IconGlowBrush}">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <materialDesign:PackIcon Kind="ContentSave" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="ذخیره تغییرات" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </materialDesign:Card>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+                
+                <materialDesign:Card Style="{StaticResource SettingCardStyle}">
+                    <StackPanel>
+                        <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource MaterialDesignDivider}" Padding="20">
+                            <StackPanel Orientation="Horizontal">
+                                <Grid Width="40" Height="40" Margin="0,0,15,0">
+                                    <Border CornerRadius="12" Background="{StaticResource IconGlowBrush}" Opacity="0.15">
+                                        <Border.Effect>
+                                            <BlurEffect Radius="8"/>
+                                        </Border.Effect>
+                                    </Border>
+                                    <materialDesign:PackIcon Kind="Palette" Width="22" Height="22" 
+                                                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                             Foreground="{StaticResource IconGlowBrush}"/>
+                                </Grid>
+                                <TextBlock Text="ظاهر برنامه" VerticalAlignment="Center" 
+                                           FontFamily="Iransans" FontWeight="Bold" FontSize="15"
+                                           Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Grid Margin="24">
+                            <TextBlock Text="حالت تاریک (Dark Mode)" VerticalAlignment="Center" Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                        <ToggleButton x:Name="TglDarkMode" HorizontalAlignment="Right" Click="TglDarkMode_Click"
+              Style="{StaticResource MaterialDesignSwitchToggleButton}"
+              Background="{StaticResource IconGlowBrush}"
+              BorderBrush="{StaticResource IconGlowBrush}"/>
+                        </Grid>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <materialDesign:Card Style="{StaticResource SettingCardStyle}">
+                    <StackPanel>
+                        <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource MaterialDesignDivider}" Padding="20">
+                            <StackPanel Orientation="Horizontal">
+                                <Grid Width="40" Height="40" Margin="0,0,15,0">
+                                    <Border CornerRadius="12" Background="{StaticResource IconGlowBrush}" Opacity="0.15">
+                                        <Border.Effect>
+                                            <BlurEffect Radius="8"/>
+                                        </Border.Effect>
+                                    </Border>
+                                    <materialDesign:PackIcon Kind="ShieldKey" Width="22" Height="22" 
+                                                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                             Foreground="{StaticResource IconGlowBrush}"/>
+                                </Grid>
+                                <TextBlock Text="امنیت حساب" VerticalAlignment="Center" 
+                                           FontFamily="Iransans" FontWeight="Bold" FontSize="15"
+                                           Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel Margin="24">
+                            <PasswordBox x:Name="TxtOldPass" materialDesign:HintAssist.Hint="رمز عبور فعلی" Style="{StaticResource SettingPasswordBoxStyle}"/>
+                            <PasswordBox x:Name="TxtNewPass" materialDesign:HintAssist.Hint="رمز عبور جدید" Style="{StaticResource SettingPasswordBoxStyle}"/>
+
+                            <Button Click="BtnChangePass_Click" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,0,15"
+                                    Foreground="{DynamicResource SidebarForegroundBrush}" BorderBrush="{DynamicResource SidebarForegroundBrush}"
+                                    Height="40">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <materialDesign:PackIcon Kind="KeyChange" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="تغییر رمز عبور" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <Separator Margin="0,10" Background="{DynamicResource MaterialDesignDivider}"/>
+                            
+                            <Button Click="BtnLogout_Click" 
+                                    Background="#15FF5252" BorderBrush="Transparent" Foreground="#FF5252" 
+                                    Style="{StaticResource MaterialDesignFlatButton}" 
+                                    Height="40">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <materialDesign:PackIcon Kind="Logout" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="خروج از حساب کاربری" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <materialDesign:Card Style="{StaticResource SettingCardStyle}">
+                    <StackPanel>
+                        <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource MaterialDesignDivider}" Padding="20">
+                            <StackPanel Orientation="Horizontal">
+                                <Grid Width="40" Height="40" Margin="0,0,15,0">
+                                    <Border CornerRadius="12" Background="{StaticResource IconGlowBrush}" Opacity="0.15">
+                                        <Border.Effect>
+                                            <BlurEffect Radius="8"/>
+                                        </Border.Effect>
+                                    </Border>
+                                    <materialDesign:PackIcon Kind="Database" Width="22" Height="22" 
+                                                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                             Foreground="{StaticResource IconGlowBrush}"/>
+                                </Grid>
+                                <TextBlock Text="پشتیبان‌گیری" VerticalAlignment="Center" 
+                                           FontFamily="Iransans" FontWeight="Bold" FontSize="15"
+                                           Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel Margin="24">
+                            <Button Click="BtnBackup_Click" Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Foreground="{DynamicResource SidebarForegroundBrush}" BorderBrush="{DynamicResource SidebarForegroundBrush}"
+                                    Height="40">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <materialDesign:PackIcon Kind="CloudUpload" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="تهیه نسخه پشتیبان (Backup)" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </materialDesign:Card>
+
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>

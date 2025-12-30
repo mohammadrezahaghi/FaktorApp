@@ -1,0 +1,103 @@
+<Window x:Class="FactorApp.UI.ActivationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Height="560" Width="400" 
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" 
+        AllowsTransparency="True" 
+        Background="Transparent" 
+        FlowDirection="RightToLeft"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        FontFamily="{DynamicResource MaterialDesignFont}">
+
+    <Window.Resources>
+        <Color x:Key="IconGlowColor">#00C49F</Color>
+        <SolidColorBrush x:Key="IconGlowBrush" Color="{StaticResource IconGlowColor}"/>
+    </Window.Resources>
+
+    <Border Background="{DynamicResource MaterialDesignPaper}" 
+            CornerRadius="15" 
+            BorderThickness="1" 
+            BorderBrush="{DynamicResource MaterialDesignDivider}">
+        
+        <Grid Margin="30">
+            <StackPanel VerticalAlignment="Center">
+                
+                <Grid Width="80" Height="80" Margin="0,0,0,25">
+                    <Border CornerRadius="25" Background="{StaticResource IconGlowBrush}" Opacity="0.15">
+                        <Border.Effect>
+                            <BlurEffect Radius="20"/>
+                        </Border.Effect>
+                    </Border>
+                    <Border CornerRadius="25" BorderThickness="1.5" BorderBrush="{StaticResource IconGlowBrush}" Opacity="0.3"/>
+                    <materialDesign:PackIcon Kind="KeyVariant" Width="40" Height="40" 
+                                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                                             Foreground="{StaticResource IconGlowBrush}"/>
+                </Grid>
+
+                <TextBlock Text="فعال‌سازی نرم‌افزار" FontSize="20" FontWeight="Bold" 
+                           HorizontalAlignment="Center" Margin="0,0,0,30"
+                           Foreground="{DynamicResource MaterialDesignBody}"/>
+
+                <TextBlock Text="کد سیستم (جهت ارسال به پشتیبانی):" Opacity="0.7" Margin="0,0,0,5"/>
+                
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBox x:Name="TxtSystemId" IsReadOnly="True" 
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             materialDesign:HintAssist.Hint="کد شناسایی"
+                             BorderBrush="{DynamicResource MaterialDesignDivider}"
+                             Foreground="{DynamicResource MaterialDesignBody}"
+                             VerticalAlignment="Center"
+                             Height="45" Padding="10"/>
+
+                    <Button Grid.Column="1" Margin="10,0,0,0"
+                            Style="{StaticResource MaterialDesignOutlinedButton}" 
+                            Click="BtnCopy_Click" 
+                            ToolTip="کپی کد سیستم"
+                            Height="45" Width="45" Padding="0"
+                            BorderBrush="{StaticResource IconGlowBrush}"
+                            Foreground="{StaticResource IconGlowBrush}">
+                        <materialDesign:PackIcon Kind="ContentCopy"/>
+                    </Button>
+                </Grid>
+
+                <TextBlock Text="کد فعال‌سازی دریافتی را وارد کنید:" Opacity="0.7" Margin="0,25,0,5"/>
+                
+                <TextBox x:Name="TxtLicenseKey" 
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="کد لایسنس"
+                         materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"
+                         materialDesign:HintAssist.Foreground="{StaticResource IconGlowBrush}"
+                         BorderBrush="{DynamicResource MaterialDesignDivider}"
+                         CaretBrush="{StaticResource IconGlowBrush}"
+                         Height="45" Padding="10"/>
+
+                <StackPanel Orientation="Vertical" Margin="0,35,0,0">
+                    <Button Content="بررسی و فعال‌سازی" 
+                            Click="BtnActivate_Click" 
+                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            Background="{StaticResource IconGlowBrush}"
+                            BorderBrush="{StaticResource IconGlowBrush}"
+                            Height="45" Margin="0,0,0,10"
+                            FontSize="14" FontWeight="Bold"/>
+
+                    <Button Content="خروج از برنامه" 
+                            Click="BtnExit_Click" 
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Foreground="{DynamicResource MaterialDesignBody}"
+                            BorderBrush="{DynamicResource MaterialDesignDivider}"
+                            Height="40" Opacity="0.7"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

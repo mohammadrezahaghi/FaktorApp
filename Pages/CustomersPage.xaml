@@ -1,0 +1,188 @@
+<Page x:Class="FactorApp.UI.Pages.CustomersPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+      mc:Ignorable="d"
+      d:DesignHeight="600"
+      d:DesignWidth="900"
+      FontFamily="Segoe UI"
+      FlowDirection="RightToLeft"
+      Title="مدیریت مشتریان">
+
+    <Page.Resources>
+        <Color x:Key="IconGlowColor">#00C49F</Color>
+        <SolidColorBrush x:Key="IconGlowBrush" Color="{StaticResource IconGlowColor}"/>
+
+        <Style x:Key="CenterAlignedColumn" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource MaterialDesignDataGridCell}">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        </Style>
+    </Page.Resources>
+
+    <materialDesign:DialogHost x:Name="CustomerDialog"
+                               Identifier="CustomerRootDialog"
+                               DialogTheme="Inherit">
+        
+        <materialDesign:DialogHost.DialogContent>
+            <Grid Margin="20" Width="350">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                        <materialDesign:PackIcon Kind="AccountDetails" Width="24" Height="24" 
+                                                 Foreground="{DynamicResource SidebarForegroundBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="TxtDialogTitle" Text="تعریف مشتری جدید" FontWeight="Bold" FontSize="16"
+                                   VerticalAlignment="Center" Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                    </StackPanel>
+
+                    <TextBox x:Name="CustInputName" materialDesign:HintAssist.Hint="نام مشتری / نام شرکت"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10"/>
+
+                    <TextBox x:Name="CustInputPhone" materialDesign:HintAssist.Hint="شماره تماس"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10"/>
+
+                    <TextBox x:Name="CustInputAddress" materialDesign:HintAssist.Hint="آدرس (اختیاری)"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10"
+                             Height="80" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AcceptsReturn="True"/>
+
+                    <TextBox x:Name="CustInputBalance" materialDesign:HintAssist.Hint="تراز حساب اولیه (ریال)"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10" Text="0"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                        <Button Style="{StaticResource MaterialDesignOutlinedButton}" Content="انصراف" Margin="10,0,0,0"
+                                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                                BorderBrush="{DynamicResource SidebarForegroundBrush}" Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                        
+                        <Button Style="{StaticResource MaterialDesignRaisedButton}" Content="ذخیره اطلاعات"
+                                Click="BtnSaveCustomer_Click" Background="{StaticResource IconGlowBrush}" BorderBrush="{StaticResource IconGlowBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </materialDesign:DialogHost.DialogContent>
+
+        <Grid Margin="16">
+            <materialDesign:Card Padding="0" UniformCornerRadius="8" 
+                                 materialDesign:ElevationAssist.Elevation="Dp0"
+                                 Background="{DynamicResource CardBackgroundBrush}"
+                                 BorderThickness="1" 
+                                 BorderBrush="{DynamicResource MaterialDesignDivider}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Background="{DynamicResource CardBackgroundBrush}" Padding="20" CornerRadius="8,8,0,0"
+                            BorderThickness="0,0,0,1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+                        <StackPanel Orientation="Horizontal">
+                            <Grid Width="40" Height="40" Margin="0,0,15,0">
+                                <Border CornerRadius="12" Background="{StaticResource IconGlowBrush}" Opacity="0.15">
+                                    <Border.Effect>
+                                        <BlurEffect Radius="8"/>
+                                    </Border.Effect>
+                                </Border>
+                                <materialDesign:PackIcon Kind="AccountGroup" Width="22" Height="22" 
+                                                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                         Foreground="{StaticResource IconGlowBrush}"/>
+                            </Grid>
+
+                            <TextBlock Text="لیست مشتریان" VerticalAlignment="Center"
+                                       FontFamily="Iransans" FontWeight="Bold" FontSize="16"
+                                       Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Grid Grid.Row="1" Margin="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="TxtSearch"
+                                 materialDesign:HintAssist.Hint="جستجوی نام یا شماره تماس..."
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Width="350" HorizontalAlignment="Left"
+                                 TextChanged="TxtSearch_TextChanged"
+                                 Foreground="{DynamicResource SidebarForegroundBrush}"
+                                 materialDesign:HintAssist.Foreground="{DynamicResource SidebarForegroundBrush}"
+                                 BorderBrush="{DynamicResource SidebarForegroundBrush}"
+                                 CaretBrush="{DynamicResource SidebarForegroundBrush}"/>
+
+                        <Button Grid.Column="1" Style="{StaticResource MaterialDesignOutlinedButton}" Click="BtnAdd_Click"
+                                BorderBrush="{DynamicResource SidebarForegroundBrush}" Foreground="{DynamicResource SidebarForegroundBrush}">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="AccountPlus" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="افزودن مشتری جدید" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <DataGrid Grid.Row="2" x:Name="DataGridCustomers"
+                              AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
+                              Background="{x:Null}" 
+                              RowBackground="Transparent"
+                              AlternatingRowBackground="Transparent"
+                              BorderThickness="0"
+                              GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="{DynamicResource MaterialDesignDivider}"
+                              materialDesign:DataGridAssist.CellPadding="13 10 10 10"
+                              materialDesign:DataGridAssist.ColumnHeaderPadding="10"
+                              VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
+                        
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding Id}" Header="کد" Width="80"
+                                                ElementStyle="{StaticResource CenterAlignedColumn}"/>
+                            
+                            <DataGridTextColumn Binding="{Binding Name}" Header="نام مشتری" Width="1.5*"
+                                                ElementStyle="{StaticResource CenterAlignedColumn}"/>
+                            
+                            <DataGridTextColumn Binding="{Binding PhoneNumber}" Header="تلفن" Width="1*"
+                                                ElementStyle="{StaticResource CenterAlignedColumn}"/>
+                            
+                            <DataGridTextColumn Binding="{Binding Balance, StringFormat=N0}" Header="مانده حساب (ریال)" Width="1*" FontWeight="Bold"
+                                                ElementStyle="{StaticResource CenterAlignedColumn}"/>
+                            
+                            <DataGridTextColumn Binding="{Binding Address}" Header="آدرس" Width="2*"
+                                                ElementStyle="{StaticResource CenterAlignedColumn}"/>
+
+                            <DataGridTemplateColumn Width="Auto">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="ویرایش" Click="BtnEdit_Click"
+                                                    Height="30" Width="30" Margin="2">
+                                                <materialDesign:PackIcon Kind="Pencil" Foreground="{StaticResource IconGlowBrush}"/>
+                                            </Button>
+                                            
+                                            <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="حذف" Click="BtnDelete_Click"
+                                                    Height="30" Width="30" Margin="2">
+                                                <materialDesign:PackIcon Kind="Delete" Foreground="#FF5252"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </materialDesign:Card>
+        </Grid>
+    </materialDesign:DialogHost>
+</Page>
