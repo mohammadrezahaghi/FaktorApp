@@ -5,9 +5,9 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       mc:Ignorable="d"
-      d:DesignHeight="700"
+      d:DesignHeight="750"
       d:DesignWidth="1000"
-      FontFamily="Segoe UI"
+      FontFamily="{DynamicResource MaterialDesignFont}"
       FlowDirection="RightToLeft"
       Title="ثبت فاکتور جدید"
       TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -15,6 +15,9 @@
       TextElement.FontSize="14">
 
     <Page.Resources>
+        <Color x:Key="IconGlowColor">#00C49F</Color>
+        <SolidColorBrush x:Key="IconGlowBrush" Color="{StaticResource IconGlowColor}"/>
+
         <Style x:Key="CenterAlignedColumn" TargetType="TextBlock">
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -40,21 +43,54 @@
     <materialDesign:DialogHost Identifier="InvoiceDialog" x:Name="InvoiceRootDialog" DialogTheme="Inherit">
 
         <materialDesign:DialogHost.DialogContent>
-            <Grid Margin="20" Width="350">
+            <Grid Margin="25" Width="380">
                 <StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                        <materialDesign:PackIcon Kind="AccountPlus" Width="24" Height="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBlock Text="تعریف مشتری جدید" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,25">
+                        <Grid Width="40" Height="40" Margin="0,0,15,0">
+                            <Border CornerRadius="12" Background="{StaticResource IconGlowBrush}" Opacity="0.15">
+                                <Border.Effect>
+                                    <BlurEffect Radius="8"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border CornerRadius="12" BorderThickness="1" BorderBrush="{StaticResource IconGlowBrush}" Opacity="0.3"/>
+                            <materialDesign:PackIcon Kind="AccountPlus" Width="22" Height="22" 
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                     Foreground="{StaticResource IconGlowBrush}"/>
+                        </Grid>
+                        <TextBlock Text="تعریف مشتری جدید" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MaterialDesignBody}"/>
                     </StackPanel>
+
+                    <TextBox x:Name="QuickCustomerName" materialDesign:HintAssist.Hint="نام مشتری" 
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10"
+                             CaretBrush="{StaticResource IconGlowBrush}"
+                             materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"/>
                     
-                    <TextBox x:Name="QuickCustomerName" materialDesign:HintAssist.Hint="نام مشتری" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10"/>
-                    <TextBox x:Name="QuickCustomerPhone" materialDesign:HintAssist.Hint="شماره تماس" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10"/>
-                    <TextBox x:Name="QuickCustomerAddress" materialDesign:HintAssist.Hint="آدرس (اختیاری)" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10" Height="60" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-                    <TextBox x:Name="QuickCustomerBalance" materialDesign:HintAssist.Hint="تراز حساب اولیه (ریال)" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10" Text="0"/>
+                    <TextBox x:Name="QuickCustomerPhone" materialDesign:HintAssist.Hint="شماره تماس" 
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10"
+                             CaretBrush="{StaticResource IconGlowBrush}"
+                             materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"/>
                     
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                        <Button Style="{StaticResource MaterialDesignOutlinedButton}" Content="انصراف" Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" Margin="10,0,0,0" BorderBrush="{DynamicResource SidebarForegroundBrush}" Foreground="{DynamicResource SidebarForegroundBrush}"/>
-                        <Button Style="{StaticResource MaterialDesignRaisedButton}" Content="ذخیره و انتخاب" Click="BtnQuickSaveCustomer_Click"/>
+                    <TextBox x:Name="QuickCustomerAddress" materialDesign:HintAssist.Hint="آدرس (اختیاری)" 
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10" Height="60" 
+                             TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                             CaretBrush="{StaticResource IconGlowBrush}"
+                             materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"/>
+                    
+                    <TextBox x:Name="QuickCustomerBalance" materialDesign:HintAssist.Hint="تراز حساب اولیه (ریال)" 
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,10" Text="0"
+                             CaretBrush="{StaticResource IconGlowBrush}"
+                             materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,25,0,0">
+                        <Button Style="{StaticResource MaterialDesignOutlinedButton}" Content="انصراف" 
+                                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" Margin="10,0,0,0" 
+                                BorderBrush="{DynamicResource SidebarForegroundBrush}" Foreground="{DynamicResource SidebarForegroundBrush}"/>
+                        
+                        <Button Style="{StaticResource MaterialDesignRaisedButton}" Content="ذخیره و انتخاب" 
+                                Click="BtnQuickSaveCustomer_Click"
+                                Background="{StaticResource IconGlowBrush}" 
+                                BorderBrush="{StaticResource IconGlowBrush}"/>
                     </StackPanel>
                 </StackPanel>
             </Grid>
@@ -62,9 +98,13 @@
 
         <Grid Margin="16">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="*"/>    <RowDefinition Height="Auto"/> </Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> 
+                <RowDefinition Height="Auto"/> 
+                <RowDefinition Height="*"/>    
+                <RowDefinition Height="Auto"/> 
+            </Grid.RowDefinitions>
 
-            <materialDesign:Card Grid.Row="0" Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" 
+            <materialDesign:Card Grid.Row="0" Padding="16" Margin="0,0,0,16" UniformCornerRadius="10" 
                                  materialDesign:ElevationAssist.Elevation="Dp0"
                                  Background="{DynamicResource CardBackgroundBrush}"
                                  BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
@@ -80,19 +120,20 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        
+
                         <ComboBox x:Name="CmbCustomers" materialDesign:HintAssist.Hint="انتخاب مشتری" 
                                   Style="{StaticResource MaterialDesignOutlinedComboBox}" 
                                   DisplayMemberPath="Name" SelectedValuePath="Id" Margin="0,0,10,0"
                                   IsEditable="True" StaysOpenOnEdit="True"
                                   Foreground="{DynamicResource SidebarForegroundBrush}"
-                                  BorderBrush="{DynamicResource SidebarForegroundBrush}"/>
-                        
+                                  BorderBrush="{DynamicResource SidebarForegroundBrush}"
+                                  materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"/>
+
                         <Button Grid.Column="1" Style="{StaticResource MaterialDesignOutlinedButton}" 
                                 ToolTip="افزودن مشتری جدید" Click="BtnNewCustomerDialog_Click" 
-                                Padding="0" Width="40" Height="40"
-                                Foreground="{DynamicResource SidebarForegroundBrush}"
-                                BorderBrush="{DynamicResource SidebarForegroundBrush}">
+                                Padding="0" Width="45" Height="45"
+                                Foreground="{StaticResource IconGlowBrush}"
+                                BorderBrush="{StaticResource IconGlowBrush}">
                             <materialDesign:PackIcon Kind="AccountPlus"/>
                         </Button>
                     </Grid>
@@ -102,11 +143,13 @@
                              TextChanged="TxtInvoiceDate_TextChanged" LostFocus="TxtInvoiceDate_LostFocus" 
                              FlowDirection="LeftToRight" HorizontalContentAlignment="Right"
                              Foreground="{DynamicResource SidebarForegroundBrush}"
-                             BorderBrush="{DynamicResource SidebarForegroundBrush}"/>
+                             BorderBrush="{DynamicResource SidebarForegroundBrush}"
+                             CaretBrush="{StaticResource IconGlowBrush}"
+                             materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"/>
                 </Grid>
             </materialDesign:Card>
 
-            <materialDesign:Card Grid.Row="1" Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" 
+            <materialDesign:Card Grid.Row="1" Padding="16" Margin="0,0,0,16" UniformCornerRadius="10" 
                                  materialDesign:ElevationAssist.Elevation="Dp0"
                                  Background="{DynamicResource CardBackgroundBrush}"
                                  BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
@@ -125,31 +168,40 @@
                               IsEditable="True" StaysOpenOnEdit="True"
                               SelectionChanged="CmbServices_SelectionChanged"
                               Foreground="{DynamicResource SidebarForegroundBrush}"
-                              BorderBrush="{DynamicResource SidebarForegroundBrush}"/>
+                              BorderBrush="{DynamicResource SidebarForegroundBrush}"
+                              materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"/>
 
                     <TextBox Grid.Column="1" x:Name="TxtQty" materialDesign:HintAssist.Hint="تعداد" 
                              Style="{StaticResource MaterialDesignOutlinedTextBox}" Text="1" Margin="5" PreviewTextInput="NumberValidation"
                              Foreground="{DynamicResource SidebarForegroundBrush}"
-                             BorderBrush="{DynamicResource SidebarForegroundBrush}"/>
+                             BorderBrush="{DynamicResource SidebarForegroundBrush}"
+                             CaretBrush="{StaticResource IconGlowBrush}"
+                             materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"/>
 
                     <TextBox Grid.Column="2" x:Name="TxtWidth" materialDesign:HintAssist.Hint="عرض (متر)" 
                              Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="5" IsEnabled="False" PreviewTextInput="DecimalValidation"
                              Foreground="{DynamicResource SidebarForegroundBrush}"
-                             BorderBrush="{DynamicResource SidebarForegroundBrush}"/>
+                             BorderBrush="{DynamicResource SidebarForegroundBrush}"
+                             CaretBrush="{StaticResource IconGlowBrush}"
+                             materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"/>
 
                     <TextBox Grid.Column="3" x:Name="TxtLength" materialDesign:HintAssist.Hint="طول (متر)" 
                              Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="5" IsEnabled="False" PreviewTextInput="DecimalValidation"
                              Foreground="{DynamicResource SidebarForegroundBrush}"
-                             BorderBrush="{DynamicResource SidebarForegroundBrush}"/>
+                             BorderBrush="{DynamicResource SidebarForegroundBrush}"
+                             CaretBrush="{StaticResource IconGlowBrush}"
+                             materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"/>
 
                     <Button Grid.Column="4" Click="BtnAddItem_Click" Style="{StaticResource MaterialDesignRaisedButton}" 
-                            ToolTip="افزودن به لیست" Margin="5" Height="50" Width="50" Padding="0">
+                            ToolTip="افزودن به لیست" Margin="5" Height="50" Width="50" Padding="0"
+                            Background="{StaticResource IconGlowBrush}" 
+                            BorderBrush="{StaticResource IconGlowBrush}">
                         <materialDesign:PackIcon Kind="Plus" Width="24" Height="24"/>
                     </Button>
                 </Grid>
             </materialDesign:Card>
 
-            <materialDesign:Card Grid.Row="2" Padding="0" UniformCornerRadius="8" 
+            <materialDesign:Card Grid.Row="2" Padding="0" UniformCornerRadius="10" 
                                  materialDesign:ElevationAssist.Elevation="Dp0" 
                                  VerticalAlignment="Stretch"
                                  Background="{DynamicResource CardBackgroundBrush}"
@@ -165,13 +217,23 @@
                             BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1">
                         <Grid>
                             <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="FormatListChecks" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <TextBlock Text="اقلام فاکتور" VerticalAlignment="Center" FontWeight="Bold"/>
+                                <Grid Width="36" Height="36" Margin="0,0,12,0">
+                                    <Border CornerRadius="10" Background="{StaticResource IconGlowBrush}" Opacity="0.15">
+                                        <Border.Effect>
+                                            <BlurEffect Radius="8"/>
+                                        </Border.Effect>
+                                    </Border>
+                                    <materialDesign:PackIcon Kind="FormatListChecks" Width="20" Height="20" 
+                                                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                             Foreground="{StaticResource IconGlowBrush}"/>
+                                </Grid>
+                                <TextBlock Text="اقلام فاکتور" VerticalAlignment="Center" FontWeight="Bold" FontSize="15"
+                                           Foreground="{DynamicResource SidebarForegroundBrush}"/>
                             </StackPanel>
-                            
+
                             <Button HorizontalAlignment="Right" Style="{StaticResource MaterialDesignOutlinedButton}" 
                                     Content="حذف انتخاب شده‌ها" Click="BtnDeleteSelected_Click" 
-                                    Foreground="#D32F2F" BorderBrush="#D32F2F" Height="30" Padding="10,0"/>
+                                    Foreground="#FF5252" BorderBrush="#FF5252" Height="30" Padding="10,0"/>
                         </Grid>
                     </Border>
 
@@ -184,7 +246,7 @@
                               GridLinesVisibility="Horizontal"
                               HorizontalGridLinesBrush="{DynamicResource MaterialDesignDivider}"
                               VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
-                        
+
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
                                                     ElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnStyle}"
@@ -205,7 +267,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="حذف این قلم" Click="BtnDeleteRow_Click" Height="30" Width="30">
-                                            <materialDesign:PackIcon Kind="Delete" Foreground="#D32F2F"/>
+                                            <materialDesign:PackIcon Kind="Delete" Foreground="#FF5252"/>
                                         </Button>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -216,7 +278,7 @@
                     <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" Padding="15" 
                             BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,1,0,0">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                            <TextBlock Text="جمع کل:" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="جمع کل:" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" Foreground="{DynamicResource SidebarForegroundBrush}"/>
                             <TextBlock x:Name="TxtSubTotal" Text="0" FontWeight="Bold" FontSize="20" 
                                        Foreground="{DynamicResource MaterialDesignBody}" Margin="10,0,5,0"/>
                             <TextBlock Text="ریال" VerticalAlignment="Bottom" Margin="0,0,0,3" Opacity="0.7"/>
@@ -225,7 +287,7 @@
                 </Grid>
             </materialDesign:Card>
 
-            <materialDesign:Card Grid.Row="3" Padding="15" Margin="0,16,0,0" UniformCornerRadius="8"
+            <materialDesign:Card Grid.Row="3" Padding="15" Margin="0,16,0,0" UniformCornerRadius="10"
                                  materialDesign:ElevationAssist.Elevation="Dp0"
                                  Background="{DynamicResource CardBackgroundBrush}"
                                  BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
@@ -237,27 +299,37 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
-                        <ToggleButton x:Name="TglIsPaid" Style="{StaticResource MaterialDesignSwitchToggleButton}" Click="TglIsPaid_Click"/>
+                        <ToggleButton x:Name="TglIsPaid" Style="{StaticResource MaterialDesignSwitchToggleButton}" Click="TglIsPaid_Click"
+                                      Background="{StaticResource IconGlowBrush}" BorderBrush="{StaticResource IconGlowBrush}"/>
+                        
                         <TextBlock x:Name="TxtPaymentStatus" Text="پرداخت نشده" VerticalAlignment="Center" Margin="10,0" FontWeight="Bold" Foreground="#D32F2F"/>
+                        
                         <ComboBox x:Name="CmbPaymentMethod" Width="140" materialDesign:HintAssist.Hint="روش پرداخت" IsEnabled="False" 
-                                  Style="{StaticResource MaterialDesignFloatingHintComboBox}" Margin="10,0,0,0"/>
+                                  Style="{StaticResource MaterialDesignFloatingHintComboBox}" Margin="10,0,0,0"
+                                  materialDesign:TextFieldAssist.UnderlineBrush="{StaticResource IconGlowBrush}"/>
                     </StackPanel>
 
-                    <CheckBox Grid.Column="1" x:Name="ChkSendWhatsapp" Content="ارسال خودکار به واتساپ" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Column="1" x:Name="ChkSendWhatsapp" Content="ارسال خودکار به واتساپ" 
+                              HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <CheckBox.Resources>
+                            <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="{StaticResource IconGlowColor}"/>
+                        </CheckBox.Resources>
+                    </CheckBox>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Content="ارسال دستی" Style="{StaticResource MaterialDesignOutlinedButton}" Click="BtnManualWhatsapp_Click" Margin="5,0"
-                                BorderBrush="{DynamicResource SidebarForegroundBrush}" Foreground="{DynamicResource SidebarForegroundBrush}"/>
                         
+                        <Button Content="ارسال دستی" Style="{StaticResource MaterialDesignOutlinedButton}" Click="BtnManualWhatsapp_Click" Margin="5,0"
+                                BorderBrush="{StaticResource IconGlowBrush}" Foreground="{StaticResource IconGlowBrush}"/>
+
                         <Button Style="{StaticResource MaterialDesignOutlinedButton}" Click="BtnPrintMenu_Click" Margin="5,0" ToolTip="گزینه‌های چاپ"
-                                BorderBrush="{DynamicResource SidebarForegroundBrush}" Foreground="{DynamicResource SidebarForegroundBrush}">
+                                BorderBrush="{StaticResource IconGlowBrush}" Foreground="{StaticResource IconGlowBrush}">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="Printer" Margin="0,0,8,0"/>
                                 <TextBlock Text="منوی چاپ"/>
                                 <materialDesign:PackIcon Kind="ChevronUp" Margin="8,0,0,0" Width="15" Height="15"/>
                             </StackPanel>
                             <Button.ContextMenu>
-                                <ContextMenu FlowDirection="RightToLeft" FontFamily="Segoe UI">
+                                <ContextMenu FlowDirection="RightToLeft" FontFamily="{DynamicResource MaterialDesignFont}">
                                     <MenuItem Header="پیش‌نمایش و چاپ" Click="BtnIssueInvoice_Click">
                                         <MenuItem.Icon><materialDesign:PackIcon Kind="PrinterEye"/></MenuItem.Icon>
                                     </MenuItem>
@@ -272,7 +344,24 @@
                             </Button.ContextMenu>
                         </Button>
 
-                        <Button Content="ثبت نهایی" Style="{StaticResource MaterialDesignRaisedButton}" Click="BtnSaveInvoice_Click" Margin="5,0"/>
+                        <Button Click="BtnSaveInvoice_Click"
+                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                Background="{StaticResource IconGlowBrush}"
+                                BorderBrush="{StaticResource IconGlowBrush}"
+                                Foreground="White"
+                                Margin="5,0"
+                                Height="45"
+                                ToolTip="ذخیره فاکتور در سیستم">
+                            
+                            <Button.Content>
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="CheckAll" Width="24" Height="24" 
+                                                             Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="ثبت نهایی" FontWeight="Bold" FontSize="15" 
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </materialDesign:Card>

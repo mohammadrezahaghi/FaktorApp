@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <item>
-    <version>1.2.1.0</version>
-    <url>https://github.com/mohammadrezahaghi/FaktorApp/releases/download/v1.2.1.0/FactorApp_Setup_v1.2.1.exe</url>
-    <changelog>https://github.com/mohammadrezahaghi/FaktorApp/releases/tag/v1.2.1</changelog>
+    <version>1.2.2.0</version>
+    <url>https://github.com/mohammadrezahaghi/FaktorApp/releases/download/v1.2.2.0/FactorApp_Setup_v1.2.2.exe</url>
+    <changelog>https://github.com/mohammadrezahaghi/FaktorApp/releases/tag/v1.2.2</changelog>
     <mandatory>false</mandatory>
 </item>

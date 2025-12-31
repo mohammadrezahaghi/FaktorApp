@@ -165,18 +165,20 @@ namespace FactorApp.UI.Pages
         }
 
         // --- خروج از حساب (با دیالوگ تایید مدرن) ---
-        private async void BtnLogout_Click(object sender, RoutedEventArgs e)
+    private async void BtnLogout_Click(object sender, RoutedEventArgs e)
         {
-            // 1. نمایش دیالوگ تایید
-            var dialog = new ConfirmDialog("آیا مطمئن هستید که می‌خواهید خارج شوید؟");
+            // استفاده از نوع Logout برای نمایش قرمز و آیکون خروج
+            var dialog = new ConfirmDialog(
+                message: "آیا مطمئن هستید که می‌خواهید از حساب کاربری خارج شوید؟",
+                title: "خروج از حساب",
+                type: ConfirmType.Logout
+            );
+
             var result = await DialogHost.Show(dialog, "RootDialog");
 
-            // 2. بررسی نتیجه (True یعنی دکمه بله زده شده)
             if (result is bool booleanResult && booleanResult == true)
             {
                 CredentialsHelper.ClearCredentials();
-                
-                // ریستارت برنامه برای رفتن به صفحه لاگین
                 WinForms.Application.Restart();
                 System.Windows.Application.Current.Shutdown();
             }
