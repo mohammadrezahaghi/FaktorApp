@@ -132,7 +132,7 @@
             </StackPanel>
 
             <TextBlock x:Name="TxtVersion" Text="v1.0.0" 
-                       Foreground="#202020" FontSize="10" FontFamily="Consolas" FontWeight="Bold"
+                       Foreground="#a3a3a3" FontSize="10" FontFamily="Consolas" FontWeight="Bold"
                        VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,15"/>
         </Grid>
     </Border>

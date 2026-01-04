@@ -49,10 +49,10 @@ namespace FactorApp.UI.Pages
         private void LoadOrders()
         {
             if (_context == null || TxtSearch == null) return;
-            
+
             var query = _context.Invoices
                                 .Include(i => i.Customer)
-                                .AsNoTracking() 
+                                .AsNoTracking()
                                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(TxtSearch.Text))
@@ -117,7 +117,7 @@ namespace FactorApp.UI.Pages
                 }).ToList();
 
                 TxtDetailInvoiceNum.Text = $"شماره فاکتور: {_editingInvoice.InvoiceNumber} | مشتری: {_editingInvoice.Customer.Name}";
-                
+
                 RefreshEditGridAndTotal();
                 DetailsDialog.IsOpen = true;
             }
@@ -137,7 +137,7 @@ namespace FactorApp.UI.Pages
 
             // محاسبه اختلاف
             decimal diff = newTotal - _originalTotalAmount;
-            
+
             if (diff > 0)
             {
                 // افزایش قیمت (سبز)
@@ -170,7 +170,7 @@ namespace FactorApp.UI.Pages
         private void CalculateRowTotal(InvoiceItem item)
         {
             bool isAreaBased = IsServiceAreaBased(item.ServiceName);
-            
+
             if (isAreaBased && item.Width > 0 && item.Length > 0)
                 item.TotalPrice = (decimal)(item.Width * item.Length) * item.Quantity * item.UnitPrice;
             else
@@ -192,11 +192,11 @@ namespace FactorApp.UI.Pages
                 binding?.UpdateSource();
 
                 CalculateRowTotal(item);
-                
+
                 // آپدیت کردن فوتر (بدون رفرش کامل گرید برای حفظ فوکوس)
                 decimal newTotal = _tempItems.Sum(i => i.TotalPrice);
                 TxtEditTotal.Text = newTotal.ToString("N0");
-                
+
                 // محاسبه اختلاف لایو
                 decimal diff = newTotal - _originalTotalAmount;
                 if (diff > 0) { TxtDiffAmount.Text = "+" + diff.ToString("N0"); TxtDiffAmount.Foreground = Brushes.Green; IconDiffArrow.Kind = PackIconKind.ArrowUp; IconDiffArrow.Foreground = Brushes.Green; }
@@ -213,10 +213,10 @@ namespace FactorApp.UI.Pages
                 if (decimal.TryParse(rawText, out decimal price))
                 {
                     item.UnitPrice = price;
-                    
+
                     int caretIndex = textBox.CaretIndex;
                     string formatted = price.ToString("N0");
-                    
+
                     if (textBox.Text != formatted)
                     {
                         textBox.Text = formatted;
@@ -227,11 +227,11 @@ namespace FactorApp.UI.Pages
                 }
 
                 CalculateRowTotal(item);
-                
+
                 // آپدیت لایو فوتر
                 decimal newTotal = _tempItems.Sum(i => i.TotalPrice);
                 TxtEditTotal.Text = newTotal.ToString("N0");
-                
+
                 decimal diffVal = newTotal - _originalTotalAmount;
                 if (diffVal > 0) { TxtDiffAmount.Text = "+" + diffVal.ToString("N0"); TxtDiffAmount.Foreground = Brushes.Green; IconDiffArrow.Kind = PackIconKind.ArrowUp; IconDiffArrow.Foreground = Brushes.Green; }
                 else if (diffVal < 0) { TxtDiffAmount.Text = diffVal.ToString("N0"); TxtDiffAmount.Foreground = Brushes.Red; IconDiffArrow.Kind = PackIconKind.ArrowDown; IconDiffArrow.Foreground = Brushes.Red; }
@@ -262,10 +262,11 @@ namespace FactorApp.UI.Pages
                     ServiceName = service.Name,
                     UnitPrice = service.UnitPrice,
                     Quantity = 1,
-                    Width = 0, Length = 0,
+                    Width = 0,
+                    Length = 0,
                     TotalPrice = service.UnitPrice
                 };
-                
+
                 _tempItems.Add(newItem);
                 RefreshEditGridAndTotal();
             }
@@ -367,7 +368,7 @@ namespace FactorApp.UI.Pages
             if (sender is not MenuItem menuItem) return;
             string tag = menuItem.Tag.ToString();
             var invoice = _context.Invoices.Include(i => i.Customer).FirstOrDefault(i => i.Id == selectedInvoice.Id);
-            
+
             if (invoice != null && invoice.Customer != null)
             {
                 bool oldIsPaid = invoice.IsPaid;
@@ -416,7 +417,18 @@ namespace FactorApp.UI.Pages
                 btn.ContextMenu.IsOpen = true;
             }
         }
-
+        private void BtnPrintDirectAction_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataGridOrders.SelectedItem is Invoice selectedInvoice)
+            {
+                var fullInvoice = GetFullInvoice(selectedInvoice.Id);
+                if (fullInvoice != null)
+                {
+                    var printer = new InvoicePrinter(fullInvoice);
+                    printer.PrintDirect(); // فراخوانی متد چاپ مستقیم
+                }
+            }
+        }
         private void BtnPrintAction_Click(object sender, RoutedEventArgs e)
         {
             if (DataGridOrders.SelectedItem is Invoice selectedInvoice)

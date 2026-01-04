@@ -383,6 +383,11 @@
                                                 <materialDesign:PackIcon Kind="Printer" Foreground="{StaticResource SidebarForegroundBrush}"/>
                                                 <Button.ContextMenu>
                                                     <ContextMenu FlowDirection="RightToLeft" FontFamily="Segoe UI">
+                                                        <MenuItem Header="چاپ مستقیم (A5 افقی)" Click="BtnPrintDirectAction_Click">
+                                                         <MenuItem.Icon>
+                                                             <materialDesign:PackIcon Kind="Printer" Foreground="Green"/>
+                                                          </MenuItem.Icon>
+                                                     </MenuItem>
                                                         <MenuItem Header="چاپ فاکتور (پرینتر)" Click="BtnPrintAction_Click">
                                                             <MenuItem.Icon><materialDesign:PackIcon Kind="Printer"/></MenuItem.Icon>
                                                         </MenuItem>

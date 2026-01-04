@@ -383,64 +383,67 @@ namespace FactorApp.UI.Pages
             }
             catch (Exception ex) { MessageBox.Show("خطا: " + ex.Message); }
         }
-private async void BtnSaveInvoice_Click(object sender, RoutedEventArgs e)
+
+        // 1. چاپ مستقیم (از منو)
+        private void BtnPrintDirect_Click(object sender, RoutedEventArgs e)
         {
-            // 1. اعتبارسنجی اولیه: بررسی خالی نبودن لیست و انتخاب مشتری
+            if (_invoiceItems.Count == 0 || CmbCustomers.SelectedItem is not Customer customer)
+            {
+                MessageBox.Show("لطفا مشتری و اقلام را وارد کنید.");
+                return;
+            }
+
+            var draftInvoice = CreateDraftInvoice(customer);
+            try
+            {
+                var printer = new InvoicePrinter(draftInvoice);
+                printer.PrintDirect();
+            }
+            catch (Exception ex) { MessageBox.Show("خطا: " + ex.Message); }
+        }
+     private async void BtnSaveInvoice_Click(object sender, RoutedEventArgs e)
+        {
             if (_invoiceItems.Count == 0 || CmbCustomers.SelectedValue == null)
             {
                 MessageBox.Show("لطفا مشتری و اقلام فاکتور را مشخص کنید.");
                 return;
             }
 
-            // دریافت ID مشتری
             int customerId = (int)CmbCustomers.SelectedValue;
-
-            // بروزرسانی تاریخ از ورودی کاربر
             UpdateDateFromInput(TxtInvoiceDate.Text);
-            
             bool isPaid = TglIsPaid.IsChecked == true;
             PaymentMethod method = PaymentMethod.None;
 
             try
             {
-                // 2. اعتبارسنجی روش پرداخت
                 if (isPaid)
                 {
                     if (CmbPaymentMethod.SelectedItem == null)
                     {
                         MessageBox.Show("لطفاً روش پرداخت را انتخاب کنید.");
-                        return; // خروج از متد قبل از انجام هر کاری
+                        return;
                     }
                     method = (PaymentMethod)CmbPaymentMethod.SelectedItem;
                 }
 
-                // 3. شروع عملیات ذخیره‌سازی در دیتابیس
                 using (var db = new AppDbContext())
                 {
-                    // دریافت مجدد مشتری از دیتابیس برای جلوگیری از خطای Detached Entity
                     var customer = db.Customers.Find(customerId);
-                    if (customer == null) throw new Exception("مشتری در پایگاه داده یافت نشد.");
+                    if (customer == null) throw new Exception("مشتری پیدا نشد.");
 
-                    // 4. ساخت شیء فاکتور
                     var newInvoice = new Invoice
                     {
                         Customer = customer,
                         Date = _selectedDate,
-                        InvoiceNumber = _selectedDate.ToString("yyyyMMdd") + "-" + DateTime.Now.ToString("HHmm"), // شماره فاکتور: تاریخ + ساعت
+                        InvoiceNumber = _selectedDate.ToString("yyyyMMdd") + "-" + DateTime.Now.ToString("HHmm"),
                         Status = InvoiceStatus.Pending,
                         FinalAmount = _invoiceItems.Sum(x => x.TotalPrice),
                         IsPaid = isPaid,
                         PaymentMethod = method,
                     };
 
-                    // 5. آپدیت مانده حساب مشتری (اگر پرداخت نشده باشد)
-                    if (!isPaid)
-                    {
-                        customer.Balance += newInvoice.FinalAmount;
-                        // نیازی به db.Entry(customer).State = Modified نیست چون شیء customer از همین کانتکست لود شده
-                    }
+                    if (!isPaid) customer.Balance += newInvoice.FinalAmount;
 
-                    // 6. افزودن اقلام فاکتور به دیتابیس
                     foreach (var item in _invoiceItems)
                     {
                         var invoiceItem = new InvoiceItem
@@ -456,23 +459,20 @@ private async void BtnSaveInvoice_Click(object sender, RoutedEventArgs e)
                         db.InvoiceItems.Add(invoiceItem);
                     }
 
-                    // 7. ذخیره نهایی تغییرات (فاکتور + آیتم‌ها + مانده مشتری)
                     db.Invoices.Add(newInvoice);
                     db.SaveChanges();
 
-                    // --- عملیات موفقیت‌آمیز پس از ذخیره ---
-
-                    // تنظیم مجدد لیست آیتم‌ها در شیء فاکتور برای چاپ (چون پس از SaveChanges، لیست Items ممکن است کامل لود نشود یا برای پرینتر نیاز باشد)
+                    // --- تغییر اصلی: چاپ مستقیم پس از ثبت ---
                     newInvoice.Items = _invoiceItems; 
 
-                    var result = MessageBox.Show($"فاکتور با موفقیت ثبت شد.\nآیا چاپ شود؟", "موفق", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    var result = MessageBox.Show($"فاکتور با موفقیت ثبت شد.\nآیا چاپ مستقیم انجام شود؟", "موفق", MessageBoxButton.YesNo, MessageBoxImage.Information);
 
                     if (result == MessageBoxResult.Yes)
                     {
                         try
                         {
                             var printer = new InvoicePrinter(newInvoice);
-                            printer.Print();
+                            printer.PrintDirect(); // <--- استفاده از متد چاپ مستقیم
                         }
                         catch (Exception printEx)
                         {
@@ -485,13 +485,12 @@ private async void BtnSaveInvoice_Click(object sender, RoutedEventArgs e)
                         await SendToWhatsapp(newInvoice);
                     }
 
-                    // پاکسازی فرم برای فاکتور بعدی
                     ResetForm();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("خطا در ثبت فاکتور:\n" + ex.Message + "\n" + ex.InnerException?.Message, "خطا", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("خطا در ثبت فاکتور:\n" + ex.Message);
             }
         }
 

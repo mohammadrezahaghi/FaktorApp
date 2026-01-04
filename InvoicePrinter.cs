@@ -46,7 +46,36 @@ namespace FactorApp.UI.Helpers
                         .Replace("3", "۳").Replace("4", "۴").Replace("5", "۵")
                         .Replace("6", "۶").Replace("7", "۷").Replace("8", "۸").Replace("9", "۹");
         }
+        public void PrintDirect()
+        {
+            try
+            {
+                PrintDialog printDialog = new PrintDialog();
 
+                // تنظیمات اجباری برای چاپ مستقیم
+                printDialog.PrintTicket.PageOrientation = System.Printing.PageOrientation.Landscape;
+                printDialog.PrintTicket.PageMediaSize = new System.Printing.PageMediaSize(System.Printing.PageMediaSizeName.ISOA5);
+                printDialog.PrintTicket.CopyCount = 1;
+
+                // تولید سند
+                FlowDocument doc = CreateDesign();
+                doc.PageHeight = PageHeight;
+                doc.PageWidth = PageWidth;
+                doc.PagePadding = new Thickness(0);
+                doc.ColumnWidth = PageWidth;
+
+                // ارسال مستقیم به پرینتر پیش‌فرض بدون باز کردن دیالوگ
+                IDocumentPaginatorSource idp = doc;
+                printDialog.PrintDocument(idp.DocumentPaginator, "Factor_Direct_" + _invoice.InvoiceNumber);
+
+                // نمایش پیام موفقیت کوچک (اختیاری)
+                // MessageBox.Show("فاکتور به چاپگر ارسال شد.", "چاپ سریع", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("خطا در چاپ مستقیم:\n" + ex.Message, "خطا", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         // 1. چاپ (Print)
         public void Print()
         {
@@ -251,8 +280,11 @@ namespace FactorApp.UI.Helpers
                 TextBlock invoiceNumTxt = new TextBlock
                 {
                     Text = $"شماره: {ToPersian(_invoice.InvoiceNumber)}",
-                    FontSize = 12, FontWeight = FontWeights.Bold, Foreground = alertRed,
-                    VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 5)
+                    FontSize = 12,
+                    FontWeight = FontWeights.Bold,
+                    Foreground = alertRed,
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    Margin = new Thickness(0, 0, 0, 5)
                 };
                 Grid.SetColumn(invoiceNumTxt, 1);
                 headerGrid.Children.Add(invoiceNumTxt);

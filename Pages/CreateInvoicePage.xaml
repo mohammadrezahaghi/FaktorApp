@@ -321,28 +321,39 @@
                         <Button Content="ارسال دستی" Style="{StaticResource MaterialDesignOutlinedButton}" Click="BtnManualWhatsapp_Click" Margin="5,0"
                                 BorderBrush="{StaticResource IconGlowBrush}" Foreground="{StaticResource IconGlowBrush}"/>
 
-                        <Button Style="{StaticResource MaterialDesignOutlinedButton}" Click="BtnPrintMenu_Click" Margin="5,0" ToolTip="گزینه‌های چاپ"
-                                BorderBrush="{StaticResource IconGlowBrush}" Foreground="{StaticResource IconGlowBrush}">
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="Printer" Margin="0,0,8,0"/>
-                                <TextBlock Text="منوی چاپ"/>
-                                <materialDesign:PackIcon Kind="ChevronUp" Margin="8,0,0,0" Width="15" Height="15"/>
-                            </StackPanel>
-                            <Button.ContextMenu>
-                                <ContextMenu FlowDirection="RightToLeft" FontFamily="{DynamicResource MaterialDesignFont}">
-                                    <MenuItem Header="پیش‌نمایش و چاپ" Click="BtnIssueInvoice_Click">
-                                        <MenuItem.Icon><materialDesign:PackIcon Kind="PrinterEye"/></MenuItem.Icon>
-                                    </MenuItem>
-                                    <Separator/>
-                                    <MenuItem Header="کپی عکس فاکتور" Click="BtnCopyImage_Click">
-                                        <MenuItem.Icon><materialDesign:PackIcon Kind="ContentCopy"/></MenuItem.Icon>
-                                    </MenuItem>
-                                    <MenuItem Header="ذخیره فایل عکس (PNG)" Click="BtnSaveImageFile_Click">
-                                        <MenuItem.Icon><materialDesign:PackIcon Kind="Image"/></MenuItem.Icon>
-                                    </MenuItem>
-                                </ContextMenu>
-                            </Button.ContextMenu>
-                        </Button>
+                    <Button Style="{StaticResource MaterialDesignOutlinedButton}" Click="BtnPrintMenu_Click" Margin="5,0" ToolTip="گزینه‌های چاپ"
+        BorderBrush="{DynamicResource SidebarForegroundBrush}" Foreground="{DynamicResource SidebarForegroundBrush}">
+    <StackPanel Orientation="Horizontal">
+        <materialDesign:PackIcon Kind="Printer" Margin="0,0,8,0"/>
+        <TextBlock Text="منوی چاپ"/>
+        <materialDesign:PackIcon Kind="ChevronUp" Margin="8,0,0,0" Width="15" Height="15"/>
+    </StackPanel>
+    <Button.ContextMenu>
+        <ContextMenu FlowDirection="RightToLeft" FontFamily="{DynamicResource MaterialDesignFont}">
+            
+            <MenuItem Header="چاپ مستقیم (A5 افقی)" Click="BtnPrintDirect_Click">
+                <MenuItem.Icon>
+                    <materialDesign:PackIcon Kind="Printer" Foreground="Green"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            
+            <Separator/>
+
+            <MenuItem Header="پیش‌نمایش و چاپ" Click="BtnIssueInvoice_Click">
+                <MenuItem.Icon><materialDesign:PackIcon Kind="PrinterEye"/></MenuItem.Icon>
+            </MenuItem>
+            
+            <Separator/>
+            
+            <MenuItem Header="کپی عکس فاکتور" Click="BtnCopyImage_Click">
+                <MenuItem.Icon><materialDesign:PackIcon Kind="ContentCopy"/></MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="ذخیره فایل عکس (PNG)" Click="BtnSaveImageFile_Click">
+                <MenuItem.Icon><materialDesign:PackIcon Kind="Image"/></MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
+    </Button.ContextMenu>
+</Button>
 
                         <Button Click="BtnSaveInvoice_Click"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
