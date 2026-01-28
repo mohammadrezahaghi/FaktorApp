@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="فاکتور شایان" Height="750" Width="1150" Icon="logo.ico"
+        Title="شایان پلاس" Height="750" Width="1150" Icon="logo.ico" MinWidth="950"   MinHeight="650"
         WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FlowDirection="RightToLeft"
         TextElement.Foreground="{DynamicResource SidebarForegroundBrush}" 
         Background="{DynamicResource MaterialDesignPaper}"
@@ -154,7 +154,7 @@
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="0,0,10,0">
                         <materialDesign:PackIcon Kind="Printer" VerticalAlignment="Center" Margin="0,0,10,0" 
                                                Foreground="{StaticResource SoftGreenBrush}" Width="24" Height="24"/>
-                        <TextBlock Text="فاکتور شایان" VerticalAlignment="Center" FontWeight="Bold" FontSize="15" 
+                        <TextBlock Text="شایان پلاس" VerticalAlignment="Center" FontWeight="Bold" FontSize="15" 
                                    Foreground="{DynamicResource SidebarForegroundBrush}"/>
                     </StackPanel>
 

@@ -44,13 +44,6 @@
                        Margin="0,0,0,30"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                
-                <Button x:Name="BtnConfirm" Content="بله"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
-                        CommandParameter="{StaticResource TrueValue}"
-                        Margin="5" Width="120" Height="40" FontSize="14" FontWeight="Bold"/>
-
                 <Button x:Name="BtnCancel" Content="انصراف"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
@@ -58,6 +51,13 @@
                         Foreground="{DynamicResource MaterialDesignBody}"
                         BorderBrush="{DynamicResource MaterialDesignDivider}"
                         Margin="5" Width="100" Height="40"/>
+                <Button x:Name="BtnConfirm" Content="بله"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                        CommandParameter="{StaticResource TrueValue}"
+                        Margin="5" Width="120" Height="40" FontSize="14" FontWeight="Bold"/>
+
+                
             </StackPanel>
         </StackPanel>
     </materialDesign:Card>

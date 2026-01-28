@@ -10,18 +10,19 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Text;
 using FactorApp.UI.Data;
 using FactorApp.UI.Helpers;
 using FactorApp.UI.Models;
 using MaterialDesignThemes.Wpf;
-using System.Text;
-
+using FactorApp.UI.UserControls; // برای دسترسی به MessageDialog و ConfirmDialog
+using System.Windows.Data;
 // رفع تداخل‌ها
-using MessageBox = System.Windows.MessageBox;
 using Clipboard = System.Windows.Clipboard;
 using Button = System.Windows.Controls.Button;
 using TextBox = System.Windows.Controls.TextBox;
 using Brushes = System.Windows.Media.Brushes;
+using ComboBox = System.Windows.Controls.ComboBox;
 
 namespace FactorApp.UI.Pages
 {
@@ -35,76 +36,143 @@ namespace FactorApp.UI.Pages
         public CreateInvoicePage()
         {
             InitializeComponent();
-
-            // تنظیم تاریخ فقط یک‌بار (زمانی که اولین بار صفحه ساخته می‌شود)
             SetDateToToday();
-            // مقداردهی اولیه کانتکست (برای استفاده در دکمه ثبت نهایی)
             _context = new AppDbContext();
-
-            // اتصال به رویداد Loaded
-            // این رویداد هر بار که کاربر این صفحه را می‌بیند اجرا می‌شود
             this.Loaded += CreateInvoicePage_Loaded;
         }
 
-
-        // این متد هر بار که نویگیت کنید اجرا می‌شود
         private void CreateInvoicePage_Loaded(object sender, RoutedEventArgs e)
         {
-            // رفرش کردن لیست‌های کشویی (مشتری و کالا)
             RefreshDropdownsPreservingSelection();
-
-            // --- اصلاح ۱: پر کردن لیست روش‌های پرداخت ---
-            // چک می‌کنیم اگر خالی بود پر شود
             if (CmbPaymentMethod.ItemsSource == null)
             {
                 CmbPaymentMethod.ItemsSource = Enum.GetValues(typeof(PaymentMethod))
                                                 .Cast<PaymentMethod>()
                                                 .Where(x => x != PaymentMethod.None);
-                CmbPaymentMethod.SelectedIndex = 0; // انتخاب پیش‌فرض
+                CmbPaymentMethod.SelectedIndex = 0;
             }
         }
-        // متد اصلی برای بروزرسانی لیست‌ها بدون پراندن انتخاب کاربر
+
+        // =========================================================
+        // متد نمایش پیام سفارشی
+        // =========================================================
+        private async void ShowMessage(string message, MessageType type = MessageType.Error)
+        {
+            var view = new MessageDialog(message, type);
+            // نمایش روی دیالوگ اصلی (PageRootDialog)
+            await DialogHost.Show(view, "PageRootDialog");
+        }
+
         private void RefreshDropdownsPreservingSelection()
         {
             try
             {
                 using (var tempContext = new AppDbContext())
                 {
-                    // --- بخش ۱: مشتریان (بدون تغییر) ---
                     var selectedCustomerId = CmbCustomers.SelectedValue;
-                    var customers = tempContext.Customers.OrderBy(c => c.Name).ToList();
+
+                    // تغییر: مرتب‌سازی نزولی بر اساس ID (آخرین‌ها اول باشند)
+                    var customers = tempContext.Customers.OrderByDescending(c => c.Id).ToList();
                     CmbCustomers.ItemsSource = customers;
+                    if (selectedCustomerId != null) CmbCustomers.SelectedValue = selectedCustomerId;
 
-                    if (selectedCustomerId != null)
-                    {
-                        CmbCustomers.SelectedValue = selectedCustomerId;
-                    }
-
-                    // --- بخش ۲: خدمات و کالاها (اصلاح شده طبق کد شما) ---
-                    // چک می‌کنیم که المان در صفحه لود شده باشد
                     if (CmbServices != null)
                     {
-                        var selectedServiceId = CmbServices.SelectedValue; // ذخیره انتخاب فعلی
+                        var selectedServiceId = CmbServices.SelectedValue;
 
-                        // دریافت لیست از جدول Services (نه Products)
-                        var services = tempContext.Services.OrderBy(s => s.Name).ToList();
-
-                        CmbServices.ItemsSource = services; // ریختن اطلاعات داخل کمبوباکس
-
-                        if (selectedServiceId != null)
-                        {
-                            // اگر قبلاً چیزی انتخاب شده بود، دوباره انتخابش کن
-                            CmbServices.SelectedValue = selectedServiceId;
-                        }
+                        // تغییر: مرتب‌سازی نزولی بر اساس ID (آخرین‌ها اول باشند)
+                        var services = tempContext.Services.OrderByDescending(s => s.Id).ToList();
+                        CmbServices.ItemsSource = services;
+                        if (selectedServiceId != null) CmbServices.SelectedValue = selectedServiceId;
                     }
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("خطا در بارگذاری لیست‌ها: " + ex.Message);
+                ShowMessage("خطا در بارگذاری لیست‌ها: " + ex.Message, MessageType.Error);
+            }
+        }
+        // متد جستجوی پیشرفته برای مشتریان (شامل نام و شماره تماس)
+        // متد جستجوی پیشرفته برای مشتریان
+        private void CmbCustomers_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            var cmb = sender as ComboBox;
+            // اگر کلیدهای کنترلی (مثل جهت‌نماها) زده شد، کاری نکنیم تا کاربر بتواند در لیست حرکت کند
+            if (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Enter || e.Key == Key.Tab) return;
+
+            CollectionView itemsViewOriginal = (CollectionView)CollectionViewSource.GetDefaultView(cmb.ItemsSource);
+
+            // اگر متن خالی شد، فیلتر را بردار و انتخاب را پاک کن
+            if (string.IsNullOrEmpty(cmb.Text))
+            {
+                itemsViewOriginal.Filter = null;
+                cmb.IsDropDownOpen = true;
+                cmb.SelectedIndex = -1; // انتخاب را حذف کن تا کاربر بتواند آزادانه تایپ کند
+                return;
+            }
+
+            itemsViewOriginal.Filter = ((o) =>
+            {
+                if (o is Customer customer)
+                {
+                    string searchText = cmb.Text.Trim().ToLower();
+                    if (customer.Name != null && customer.Name.ToLower().Contains(searchText)) return true;
+                    if (customer.PhoneNumber != null && customer.PhoneNumber.Contains(searchText)) return true;
+                }
+                return false;
+            });
+
+            itemsViewOriginal.Refresh();
+
+            // اگر آیتمی پیدا شد لیست را باز کن، وگرنه ببند
+            if (itemsViewOriginal.Count > 0)
+            {
+                cmb.IsDropDownOpen = true;
+            }
+            else
+            {
+                cmb.IsDropDownOpen = false;
             }
         }
 
+        // متد جستجوی پیشرفته برای خدمات
+        private void CmbServices_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            var cmb = sender as ComboBox;
+            if (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Enter || e.Key == Key.Tab) return;
+
+            CollectionView itemsViewOriginal = (CollectionView)CollectionViewSource.GetDefaultView(cmb.ItemsSource);
+
+            if (string.IsNullOrEmpty(cmb.Text))
+            {
+                itemsViewOriginal.Filter = null;
+                cmb.IsDropDownOpen = true;
+                cmb.SelectedIndex = -1;
+                return;
+            }
+
+            itemsViewOriginal.Filter = ((o) =>
+            {
+                if (o is Service service)
+                {
+                    string searchText = cmb.Text.Trim().ToLower();
+                    if (service.Name != null && service.Name.ToLower().Contains(searchText)) return true;
+                }
+                return false;
+            });
+
+            itemsViewOriginal.Refresh();
+
+            if (itemsViewOriginal.Count > 0)
+            {
+                cmb.IsDropDownOpen = true;
+            }
+            else
+            {
+                cmb.IsDropDownOpen = false;
+            }
+        }
+        // ... (متدهای مربوط به تاریخ و تکست باکس‌ها بدون تغییر) ...
         private void SetDateToToday()
         {
             _selectedDate = DateTime.Now;
@@ -112,33 +180,6 @@ namespace FactorApp.UI.Pages
                 TxtInvoiceDate.Text = DateUtils.ToShamsi(_selectedDate);
         }
 
-        private void LoadInitialData()
-        {
-            var services = _context.Services.ToList();
-            CmbServices.ItemsSource = services;
-            CmbServices.DisplayMemberPath = "Name";
-            CmbServices.SelectedValuePath = "Id";
-
-            ReloadCustomers();
-
-            CmbPaymentMethod.ItemsSource = Enum.GetValues(typeof(PaymentMethod))
-                                               .Cast<PaymentMethod>()
-                                               .Where(x => x != PaymentMethod.None);
-            CmbPaymentMethod.SelectedIndex = 0;
-        }
-
-        private void ReloadCustomers()
-        {
-            var customers = _context.Customers.ToList();
-            if (CmbCustomers != null)
-            {
-                CmbCustomers.ItemsSource = customers;
-                CmbCustomers.DisplayMemberPath = "Name";
-                CmbCustomers.SelectedValuePath = "Id";
-            }
-        }
-
-        // --- بخش تاریخ و اعتبارسنجی ---
         private void TxtInvoiceDate_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (_isUpdatingText) return;
@@ -193,52 +234,75 @@ namespace FactorApp.UI.Pages
             catch { }
         }
 
-        private void NumberValidation(object sender, TextCompositionEventArgs e)
-        {
-            Regex regex = new Regex("[^0-9]+");
-            e.Handled = regex.IsMatch(e.Text);
-        }
-
-        private void DecimalValidation(object sender, TextCompositionEventArgs e)
-        {
-            Regex regex = new Regex("[^0-9.]+");
-            e.Handled = regex.IsMatch(e.Text);
-        }
+        private void NumberValidation(object sender, TextCompositionEventArgs e) => e.Handled = new Regex("[^0-9]+").IsMatch(e.Text);
+        private void DecimalValidation(object sender, TextCompositionEventArgs e) => e.Handled = new Regex("[^0-9.]+").IsMatch(e.Text);
 
         // --- افزودن آیتم ---
         private void BtnAddItem_Click(object sender, RoutedEventArgs e)
         {
             if (CmbServices.SelectedItem is not Service service)
             {
-                MessageBox.Show("لطفا یک کالا/خدمات انتخاب کنید.");
+                ShowMessage("لطفا یک کالا/خدمات انتخاب کنید.", MessageType.Warning);
                 return;
             }
 
             int qty = int.TryParse(TxtQty.Text, out int q) ? q : 1;
             double width = double.TryParse(TxtWidth.Text, out double w) ? w : 0;
             double length = double.TryParse(TxtLength.Text, out double l) ? l : 0;
-            decimal totalRowPrice = 0;
 
-            if (service.Method == CalculationMethod.AreaBased)
-                totalRowPrice = (decimal)(width * length) * qty * service.UnitPrice;
-            else
-                totalRowPrice = qty * service.UnitPrice;
+            // ************************************************************
+            // *** تغییر جدید: بررسی وجود آیتم تکراری ***
+            // ************************************************************
 
-            if (totalRowPrice == 0) { MessageBox.Show("قیمت کل صفر شد! مقادیر را بررسی کنید."); return; }
+            // جستجو برای آیتمی با نام سرویس، عرض و طول مشابه
+            var existingItem = _invoiceItems.FirstOrDefault(x =>
+                x.ServiceName == service.Name &&
+                Math.Abs(x.Width - width) < 0.01 &&  // مقایسه دابل با تلورانس کوچک
+                Math.Abs(x.Length - length) < 0.01
+            );
 
-            _invoiceItems.Add(new InvoiceItem
+            if (existingItem != null)
             {
-                ServiceName = service.Name,
-                UnitPrice = service.UnitPrice,
-                Quantity = qty,
-                Width = width,
-                Length = length,
-                TotalPrice = totalRowPrice,
-                IsSelected = false
-            });
+                // آیتم تکراری پیدا شد -> تعداد را اضافه کن
+                existingItem.Quantity += qty;
 
+                // محاسبه مجدد قیمت کل برای این سطر
+                if (service.Method == CalculationMethod.AreaBased)
+                    existingItem.TotalPrice = (decimal)(existingItem.Width * existingItem.Length) * existingItem.Quantity * existingItem.UnitPrice;
+                else
+                    existingItem.TotalPrice = existingItem.Quantity * existingItem.UnitPrice;
+            }
+            else
+            {
+                // آیتم جدید است -> اضافه کن
+                decimal totalRowPrice = 0;
+                if (service.Method == CalculationMethod.AreaBased)
+                    totalRowPrice = (decimal)(width * length) * qty * service.UnitPrice;
+                else
+                    totalRowPrice = qty * service.UnitPrice;
+
+                if (totalRowPrice == 0)
+                {
+                    ShowMessage("قیمت کل صفر شد! مقادیر را بررسی کنید.", MessageType.Warning);
+                    return;
+                }
+
+                _invoiceItems.Add(new InvoiceItem
+                {
+                    ServiceName = service.Name,
+                    UnitPrice = service.UnitPrice,
+                    Quantity = qty,
+                    Width = width,
+                    Length = length,
+                    TotalPrice = totalRowPrice,
+                    IsSelected = false
+                });
+            }
+
+            // بازخوانی گرید
             RefreshGrid();
 
+            // پاک کردن فرم
             TxtQty.Text = "1";
             if (TxtWidth.IsEnabled) { TxtWidth.Text = ""; TxtLength.Text = ""; }
         }
@@ -246,12 +310,10 @@ namespace FactorApp.UI.Pages
         private void RefreshGrid()
         {
             if (DataGridItems == null) return;
-
             DataGridItems.ItemsSource = null;
             DataGridItems.ItemsSource = _invoiceItems;
             decimal total = _invoiceItems.Sum(x => x.TotalPrice);
-            if (TxtSubTotal != null)
-                TxtSubTotal.Text = total.ToString("N0");
+            if (TxtSubTotal != null) TxtSubTotal.Text = total.ToString("N0");
         }
 
         private void CmbServices_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -263,9 +325,16 @@ namespace FactorApp.UI.Pages
                 TxtLength.IsEnabled = isAreaBased;
                 if (!isAreaBased) { TxtWidth.Text = ""; TxtLength.Text = ""; }
             }
+            else
+            {
+                // وقتی انتخاب پاک می‌شود (مثلاً هنگام جستجو)
+                TxtWidth.IsEnabled = false;
+                TxtLength.IsEnabled = false;
+                TxtWidth.Text = "";
+                TxtLength.Text = "";
+            }
         }
 
-        // --- حذف آیتم‌ها ---
         private void BtnDeleteRow_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.DataContext is InvoiceItem item)
@@ -275,39 +344,44 @@ namespace FactorApp.UI.Pages
             }
         }
 
-        private void BtnDeleteSelected_Click(object sender, RoutedEventArgs e)
+        // --- حذف آیتم‌ها با دیالوگ جدید ---
+        private async void BtnDeleteSelected_Click(object sender, RoutedEventArgs e)
         {
             var itemsToDelete = _invoiceItems.Where(x => x.IsSelected).ToList();
             if (itemsToDelete.Count == 0) return;
 
-            if (MessageBox.Show($"آیا از حذف {itemsToDelete.Count} قلم مطمئن هستید؟", "حذف", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            var dialog = new ConfirmDialog(
+                $"آیا از حذف {itemsToDelete.Count} قلم مطمئن هستید؟",
+                "حذف اقلام",
+                ConfirmType.Delete
+            );
+
+            var result = await DialogHost.Show(dialog, "PageRootDialog");
+
+            if (result is bool confirm && confirm)
             {
                 foreach (var item in itemsToDelete) _invoiceItems.Remove(item);
                 RefreshGrid();
             }
         }
 
-        // --- دیالوگ مشتری جدید ---
         private void BtnNewCustomerDialog_Click(object sender, RoutedEventArgs e)
         {
-            // پاک کردن فیلدها
             if (QuickCustomerName != null) QuickCustomerName.Clear();
             if (QuickCustomerPhone != null) QuickCustomerPhone.Clear();
             if (QuickCustomerAddress != null) QuickCustomerAddress.Clear();
             if (QuickCustomerBalance != null) QuickCustomerBalance.Text = "0";
 
-            // >>>> تغییر اصلی: باز کردن دیالوگ با استفاده از نام <<<<
-            if (InvoiceRootDialog != null)
-            {
-                InvoiceRootDialog.IsOpen = true;
-            }
+            // باز کردن فرم مشتری (دیالوگ داخلی)
+            InvoiceRootDialog.IsOpen = true;
         }
 
         private void BtnQuickSaveCustomer_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(QuickCustomerName.Text))
             {
-                MessageBox.Show("نام مشتری الزامی است.");
+                // اینجا چون دیالوگ داخلی باز است، پیام روی دیالوگ بیرونی باز میشود و مشکلی ندارد
+                ShowMessage("نام مشتری الزامی است.", MessageType.Warning);
                 return;
             }
 
@@ -324,17 +398,23 @@ namespace FactorApp.UI.Pages
             _context.Customers.Add(newCustomer);
             _context.SaveChanges();
 
-            // >>>> تغییر اصلی: بستن دیالوگ با استفاده از نام <<<<
-            if (InvoiceRootDialog != null)
-            {
-                InvoiceRootDialog.IsOpen = false;
-            }
+            InvoiceRootDialog.IsOpen = false;
 
             ReloadCustomers();
             CmbCustomers.SelectedValue = newCustomer.Id;
         }
 
-        // --- پرداخت و ثبت ---
+        private void ReloadCustomers()
+        {
+            var customers = _context.Customers.ToList();
+            if (CmbCustomers != null)
+            {
+                CmbCustomers.ItemsSource = customers;
+                CmbCustomers.DisplayMemberPath = "Name";
+                CmbCustomers.SelectedValuePath = "Id";
+            }
+        }
+
         private void TglIsPaid_Click(object sender, RoutedEventArgs e)
         {
             bool isPaid = TglIsPaid.IsChecked == true;
@@ -356,7 +436,7 @@ namespace FactorApp.UI.Pages
         {
             if (_invoiceItems.Count == 0 || CmbCustomers.SelectedItem is not Customer selectedCustomer)
             {
-                MessageBox.Show("لطفا مشتری و اقلام را وارد کنید.");
+                ShowMessage("لطفا مشتری و اقلام را وارد کنید.", MessageType.Warning);
                 return;
             }
             UpdateDateFromInput(TxtInvoiceDate.Text);
@@ -381,15 +461,14 @@ namespace FactorApp.UI.Pages
                 var printer = new InvoicePrinter(draftInvoice);
                 printer.Print();
             }
-            catch (Exception ex) { MessageBox.Show("خطا: " + ex.Message); }
+            catch (Exception ex) { ShowMessage("خطا: " + ex.Message, MessageType.Error); }
         }
 
-        // 1. چاپ مستقیم (از منو)
         private void BtnPrintDirect_Click(object sender, RoutedEventArgs e)
         {
             if (_invoiceItems.Count == 0 || CmbCustomers.SelectedItem is not Customer customer)
             {
-                MessageBox.Show("لطفا مشتری و اقلام را وارد کنید.");
+                ShowMessage("لطفا مشتری و اقلام را وارد کنید.", MessageType.Warning);
                 return;
             }
 
@@ -399,13 +478,16 @@ namespace FactorApp.UI.Pages
                 var printer = new InvoicePrinter(draftInvoice);
                 printer.PrintDirect();
             }
-            catch (Exception ex) { MessageBox.Show("خطا: " + ex.Message); }
+            catch (Exception ex) { ShowMessage("خطا: " + ex.Message, MessageType.Error); }
         }
-     private async void BtnSaveInvoice_Click(object sender, RoutedEventArgs e)
+
+        // --- ثبت نهایی و چاپ ---
+        private async void BtnSaveInvoice_Click(object sender, RoutedEventArgs e)
         {
+            // اعتبارسنجی اولیه
             if (_invoiceItems.Count == 0 || CmbCustomers.SelectedValue == null)
             {
-                MessageBox.Show("لطفا مشتری و اقلام فاکتور را مشخص کنید.");
+                ShowMessage("لطفا مشتری و اقلام فاکتور را مشخص کنید.", MessageType.Warning);
                 return;
             }
 
@@ -420,30 +502,74 @@ namespace FactorApp.UI.Pages
                 {
                     if (CmbPaymentMethod.SelectedItem == null)
                     {
-                        MessageBox.Show("لطفاً روش پرداخت را انتخاب کنید.");
+                        ShowMessage("لطفاً روش پرداخت را انتخاب کنید.", MessageType.Warning);
                         return;
                     }
                     method = (PaymentMethod)CmbPaymentMethod.SelectedItem;
                 }
+
+                Invoice newInvoice;
 
                 using (var db = new AppDbContext())
                 {
                     var customer = db.Customers.Find(customerId);
                     if (customer == null) throw new Exception("مشتری پیدا نشد.");
 
-                    var newInvoice = new Invoice
+                    // ********************************************************
+                    // *** بخش تولید شماره فاکتور استاندارد (YY + 0000) ***
+                    // ********************************************************
+
+                    // 1. استخراج سال شمسی (مثلاً 1404)
+                    System.Globalization.PersianCalendar pc = new System.Globalization.PersianCalendar();
+                    int currentYear = pc.GetYear(_selectedDate);
+
+                    // 2. ساخت پیشوند (دو رقم آخر سال: 04)
+                    string yearPrefix = (currentYear % 100).ToString("00");
+
+                    // 3. پیدا کردن آخرین شماره فاکتور در این سال
+                    // شرط: فاکتورهایی که با این پیشوند شروع می‌شوند و طولشان 6 رقم است (2 رقم سال + 4 رقم سریال)
+                    var lastInvoice = db.Invoices
+                                        .Where(i => i.InvoiceNumber.StartsWith(yearPrefix) && i.InvoiceNumber.Length == 6)
+                                        .OrderByDescending(i => i.InvoiceNumber)
+                                        .FirstOrDefault();
+
+                    string newInvoiceNumber;
+                    if (lastInvoice != null)
+                    {
+                        // اگر قبلاً فاکتوری بوده، بخش سریال (4 رقم آخر) را بردار و یکی اضافه کن
+                        if (int.TryParse(lastInvoice.InvoiceNumber.Substring(2), out int lastSeq))
+                        {
+                            newInvoiceNumber = yearPrefix + (lastSeq + 1).ToString("0000");
+                        }
+                        else
+                        {
+                            // در صورت خطای احتمالی در پارس کردن، یک شماره تصادفی ندهیم، از 1 شروع کنیم
+                            newInvoiceNumber = yearPrefix + "0001";
+                        }
+                    }
+                    else
+                    {
+                        // اولین فاکتور سال
+                        newInvoiceNumber = yearPrefix + "0001";
+                    }
+                    // ********************************************************
+
+
+                    newInvoice = new Invoice
                     {
                         Customer = customer,
                         Date = _selectedDate,
-                        InvoiceNumber = _selectedDate.ToString("yyyyMMdd") + "-" + DateTime.Now.ToString("HHmm"),
+                        InvoiceNumber = newInvoiceNumber, // استفاده از شماره استاندارد جدید
                         Status = InvoiceStatus.Pending,
                         FinalAmount = _invoiceItems.Sum(x => x.TotalPrice),
                         IsPaid = isPaid,
                         PaymentMethod = method,
                     };
 
+                    // اگر پرداخت نشده، به حساب مشتری اضافه کن
                     if (!isPaid) customer.Balance += newInvoice.FinalAmount;
 
+                    // ذخیره اقلام
                     foreach (var item in _invoiceItems)
                     {
                         var invoiceItem = new InvoiceItem
@@ -461,36 +587,40 @@ namespace FactorApp.UI.Pages
 
                     db.Invoices.Add(newInvoice);
                     db.SaveChanges();
-
-                    // --- تغییر اصلی: چاپ مستقیم پس از ثبت ---
-                    newInvoice.Items = _invoiceItems; 
-
-                    var result = MessageBox.Show($"فاکتور با موفقیت ثبت شد.\nآیا چاپ مستقیم انجام شود؟", "موفق", MessageBoxButton.YesNo, MessageBoxImage.Information);
-
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        try
-                        {
-                            var printer = new InvoicePrinter(newInvoice);
-                            printer.PrintDirect(); // <--- استفاده از متد چاپ مستقیم
-                        }
-                        catch (Exception printEx)
-                        {
-                            MessageBox.Show("فاکتور ثبت شد اما در چاپ مشکلی پیش آمد:\n" + printEx.Message);
-                        }
-                    }
-
-                    if (ChkSendWhatsapp.IsChecked == true)
-                    {
-                        await SendToWhatsapp(newInvoice);
-                    }
-
-                    ResetForm();
                 }
+
+                // پر کردن دستی آیتم‌ها برای پرینت (چون شیء newInvoice هنوز آیتم‌هایش لود نشده)
+                newInvoice.Items = _invoiceItems;
+
+                // دیالوگ موفقیت و سوال چاپ
+                var dialog = new ConfirmDialog($"فاکتور شماره {newInvoice.InvoiceNumber} با موفقیت ثبت شد.\nآیا چاپ مستقیم انجام شود؟", "ثبت موفق", ConfirmType.Success);
+                var result = await DialogHost.Show(dialog, "PageRootDialog");
+
+                if (result is bool confirm && confirm)
+                {
+                    try
+                    {
+                        var printer = new InvoicePrinter(newInvoice);
+                        printer.PrintDirect();
+                    }
+                    catch (Exception printEx)
+                    {
+                        ShowMessage("فاکتور ثبت شد اما در چاپ مشکلی پیش آمد:\n" + printEx.Message, MessageType.Warning);
+                    }
+                }
+
+                // ارسال واتساپ
+                if (ChkSendWhatsapp.IsChecked == true)
+                {
+                    await SendToWhatsapp(newInvoice);
+                }
+
+                // پاکسازی فرم برای فاکتور بعدی
+                ResetForm();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("خطا در ثبت فاکتور:\n" + ex.Message);
+                ShowMessage("خطا در ثبت فاکتور:\n" + ex.Message, MessageType.Error);
             }
         }
 
@@ -498,7 +628,7 @@ namespace FactorApp.UI.Pages
         {
             if (_invoiceItems.Count == 0 || CmbCustomers.SelectedItem is not Customer customer)
             {
-                MessageBox.Show("اطلاعات ناقص"); return;
+                ShowMessage("اطلاعات ناقص است.", MessageType.Warning); return;
             }
 
             var draft = CreateDraftInvoice(customer);
@@ -552,7 +682,7 @@ namespace FactorApp.UI.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show("خطا در پردازش ارسال: " + ex.Message);
+                ShowMessage("خطا در پردازش ارسال: " + ex.Message, MessageType.Error);
             }
 
             await Task.CompletedTask;
@@ -586,7 +716,7 @@ namespace FactorApp.UI.Pages
             TglIsPaid_Click(null, null);
             ChkSendWhatsapp.IsChecked = false;
         }
-        // --- 1. باز کردن منوی دکمه ---
+
         private void BtnPrintMenu_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.ContextMenu != null)
@@ -597,12 +727,11 @@ namespace FactorApp.UI.Pages
             }
         }
 
-        // --- 2. کپی عکس در کلیپ‌بورد ---
         private void BtnCopyImage_Click(object sender, RoutedEventArgs e)
         {
             if (_invoiceItems.Count == 0 || CmbCustomers.SelectedItem is not Customer customer)
             {
-                MessageBox.Show("لطفا مشتری و اقلام را وارد کنید.");
+                ShowMessage("لطفا مشتری و اقلام را وارد کنید.", MessageType.Warning);
                 return;
             }
 
@@ -611,45 +740,34 @@ namespace FactorApp.UI.Pages
             try
             {
                 var printer = new InvoicePrinter(draftInvoice);
-
-                // 
-                // این متد الان در InvoicePrinter وجود دارد
                 var image = printer.GenerateImage();
-
-                System.Windows.Clipboard.SetImage(image);
-
-                MessageBox.Show("عکس فاکتور کپی شد!\nالان Paste کنید (Ctrl+V).", "موفق", MessageBoxButton.OK, MessageBoxImage.Information);
+                Clipboard.SetImage(image);
+                ShowMessage("عکس فاکتور کپی شد!\nالان Paste کنید (Ctrl+V).", MessageType.Success);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("خطا در تولید عکس: " + ex.Message);
+                ShowMessage("خطا در تولید عکس: " + ex.Message, MessageType.Error);
             }
         }
-        // --- 3. ذخیره عکس فاکتور در فایل (Save As) ---
+
         private void BtnSaveImageFile_Click(object sender, RoutedEventArgs e)
         {
-            // 1. اعتبارسنجی ورودی‌ها
             if (_invoiceItems.Count == 0 || CmbCustomers.SelectedItem is not Customer customer)
             {
-                MessageBox.Show("لطفا مشتری و اقلام را وارد کنید.");
+                ShowMessage("لطفا مشتری و اقلام را وارد کنید.", MessageType.Warning);
                 return;
             }
 
-            // 2. ساخت فاکتور پیش‌نویس (بدون ذخیره در دیتابیس)
             var draftInvoice = CreateDraftInvoice(customer);
 
             try
             {
-                // 3. استفاده از کلاس پرینتر
                 var printer = new InvoicePrinter(draftInvoice);
-
-                // 4. فراخوانی متد ذخیره (که دیالوگ باز می‌کند و ذخیره می‌کند)
-                // این متد را در مرحله قبل در InvoicePrinter.cs اضافه کردیم
                 printer.SaveAsImage();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("خطا در ذخیره سازی: " + ex.Message);
+                ShowMessage("خطا در ذخیره سازی: " + ex.Message, MessageType.Error);
             }
         }
     }

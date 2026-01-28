@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -6,7 +7,6 @@ using System.Windows.Input;
 using FactorApp.UI.Data;
 using FactorApp.UI.Models;
 using MaterialDesignThemes.Wpf;
-using MessageBox = System.Windows.MessageBox;
 using Button = System.Windows.Controls.Button;
 using FactorApp.UI.UserControls;
 
@@ -37,36 +37,40 @@ namespace FactorApp.UI.Pages
             }
         }
 
-        // --- اعتبارسنجی: فقط عدد وارد شود ---
+        // ==========================================================
+        // متد نمایش پیام (روی دیالوگ بیرونی باز می‌شود)
+        // ==========================================================
+        private async void ShowMessage(string message, MessageType type = MessageType.Error)
+        {
+            // نکته: اینجا دیگر ServiceDialog.IsOpen = false نمی‌کنیم
+            // تا اگر فرم باز است، پیام روی آن بیاید و کاربر فرم را از دست ندهد.
+            
+            var view = new MessageDialog(message, type);
+            // استفاده از Identifier دیالوگ بیرونی
+            await DialogHost.Show(view, "PageRootDialog");
+        }
+
         private void NumberValidation(object sender, TextCompositionEventArgs e)
         {
             Regex regex = new Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
         }
 
-        // --- جدا کردن 3 رقم 3 رقم هنگام تایپ ---
         private void ServInputPrice_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is System.Windows.Controls.TextBox textBox)
             {
-                // حذف رویداد برای جلوگیری از لوپ بی‌نهایت هنگام تغییر متن
                 textBox.TextChanged -= ServInputPrice_TextChanged;
-
-                string rawText = textBox.Text.Replace(",", ""); // حذف کاماهای قبلی
+                string rawText = textBox.Text.Replace(",", ""); 
                 if (!string.IsNullOrEmpty(rawText) && decimal.TryParse(rawText, out decimal number))
                 {
-                    // فرمت‌دهی با جداکننده هزارگان
                     textBox.Text = number.ToString("N0");
-                    
-                    // قرار دادن نشانگر تایپ در انتهای متن
                     textBox.CaretIndex = textBox.Text.Length;
                 }
                 else if (string.IsNullOrEmpty(rawText))
                 {
                     textBox.Text = "";
                 }
-
-                // اتصال مجدد رویداد
                 textBox.TextChanged += ServInputPrice_TextChanged;
             }
         }
@@ -80,6 +84,7 @@ namespace FactorApp.UI.Pages
             ServInputPrice.Clear();
             ServInputMethod.SelectedIndex = 0;
 
+            // باز کردن دیالوگ داخلی (فرم)
             ServiceDialog.IsOpen = true;
         }
 
@@ -92,28 +97,27 @@ namespace FactorApp.UI.Pages
 
                 ServInputName.Text = service.Name;
                 ServInputCategory.Text = service.Category;
-                
-                // مقداردهی قیمت با فرمت 3 رقم 3 رقم
                 ServInputPrice.Text = service.UnitPrice.ToString("N0");
-                
                 ServInputMethod.SelectedIndex = service.Method == CalculationMethod.AreaBased ? 1 : 0;
 
-                ServiceDialog.IsOpen = true;
+                // باز کردن دیالوگ داخلی (فرم)
+                ServiceDialog.IsOpen = true; 
             }
         }
 
         private void BtnSaveService_Click(object sender, RoutedEventArgs e)
         {
+            // اعتبارسنجی
             if (string.IsNullOrWhiteSpace(ServInputName.Text) || string.IsNullOrWhiteSpace(ServInputPrice.Text))
             {
-                MessageBox.Show("نام و قیمت الزامی است.");
+                // پیام روی فرم باز می‌شود (چون PageRootDialog لایه بالاتر است)
+                ShowMessage("لطفاً نام و قیمت خدمت را وارد کنید.", MessageType.Warning);
                 return;
             }
 
-            // حذف کاما قبل از تبدیل به عدد برای ذخیره در دیتابیس
             if (!decimal.TryParse(ServInputPrice.Text.Replace(",", ""), out decimal price))
             {
-                MessageBox.Show("قیمت وارد شده صحیح نیست.");
+                ShowMessage("قیمت وارد شده صحیح نمی‌باشد.", MessageType.Error);
                 return;
             }
 
@@ -146,20 +150,28 @@ namespace FactorApp.UI.Pages
                 context.SaveChanges();
             }
 
+            // بستن فرم فقط در صورت موفقیت
             ServiceDialog.IsOpen = false;
             LoadData();
+            
+            // نمایش پیام موفقیت (اختیاری)
+            // ShowMessage("اطلاعات با موفقیت ذخیره شد.", MessageType.Success);
         }
 
-        private void BtnDelete_Click(object sender, RoutedEventArgs e)
+        private async void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.DataContext is Service service)
             {
-                var dialog = new ConfirmDialog($"آیا از حذف سرویس '{service.Name}' مطمئن هستید؟");
-                // اگر می‌خواهید از ConfirmDialog سفارشی که قبلا ساختیم استفاده کنید، باید اینجا هندل شود
-                // فعلا همان مسیج باکس استاندارد را می‌گذارم چون سریع‌تر است
-                var result = MessageBox.Show($"آیا از حذف سرویس '{service.Name}' مطمئن هستید؟", "تایید حذف", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                
-                if (result == MessageBoxResult.Yes)
+                var dialog = new ConfirmDialog(
+                    $"آیا از حذف سرویس '{service.Name}' مطمئن هستید؟", 
+                    "تایید حذف", 
+                    ConfirmType.Delete
+                );
+
+                // باز کردن دیالوگ سوال روی لایه بیرونی
+                var result = await DialogHost.Show(dialog, "PageRootDialog");
+
+                if (result is bool confirm && confirm)
                 {
                     using (var context = new AppDbContext())
                     {

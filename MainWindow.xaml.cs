@@ -152,7 +152,9 @@ namespace FactorApp.UI
         private void BtnCustomers_Click(object sender, RoutedEventArgs e)
         {
             UpdateSidebarUI(sender as Button);
-            if (_customersPage == null) _customersPage = new CustomersPage();
+            // if (_customersPage == null) _customersPage = new CustomersPage();
+            _customersPage = new CustomersPage();
+
             NavigateTo(_customersPage);
         }
 
@@ -214,7 +216,7 @@ namespace FactorApp.UI
             if (CanClose) return;
             e.Cancel = true;
             this.Hide();
-            (Application.Current as FactorApp.UI.App)?.ShowNotification("چاپخانه پلاس", "برنامه در پس‌زمینه فعال است.");
+            (Application.Current as FactorApp.UI.App)?.ShowNotification("شایان پلاس", "برنامه در پس‌زمینه فعال است.");
         }
 
         private void ColorZone_MouseDown(object sender, MouseButtonEventArgs e)

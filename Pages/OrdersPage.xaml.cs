@@ -11,7 +11,7 @@ using FactorApp.UI.Models;
 using MaterialDesignThemes.Wpf;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-
+using FactorApp.UI.UserControls; // اضافه کردن این خط
 using MessageBox = System.Windows.MessageBox;
 using Button = System.Windows.Controls.Button;
 using MenuItem = System.Windows.Controls.MenuItem;
@@ -82,6 +82,19 @@ namespace FactorApp.UI.Pages
             }
 
             DataGridOrders.ItemsSource = query.OrderByDescending(i => i.Id).ToList();
+        }
+
+
+
+
+        // =========================================================
+        // متد جدید: نمایش پیام روی دیالوگ اصلی
+        // =========================================================
+        private async void ShowMessage(string message, MessageType type = MessageType.Info)
+        {
+            var view = new MessageDialog(message, type);
+            // نمایش روی لایه بیرونی که همه چیز را می‌پوشاند
+            await DialogHost.Show(view, "PageRootDialog");
         }
 
         private void FilterChanged(object sender, RoutedEventArgs e) => LoadOrders();
@@ -287,6 +300,7 @@ namespace FactorApp.UI.Pages
 
             try
             {
+                // ... (کدهای محاسباتی و ذخیره سازی دیتابیس بدون تغییر میمانند) ...
                 var dbItems = _context.InvoiceItems.Where(x => x.InvoiceId == _editingInvoice.Id).ToList();
                 var uiIds = _tempItems.Select(x => x.Id).ToList();
                 var itemsToDelete = dbItems.Where(x => !uiIds.Contains(x.Id)).ToList();
@@ -296,7 +310,6 @@ namespace FactorApp.UI.Pages
                 foreach (var tempItem in _tempItems)
                 {
                     CalculateRowTotal(tempItem);
-
                     if (tempItem.Id == 0)
                     {
                         var newItem = new InvoiceItem
@@ -331,19 +344,25 @@ namespace FactorApp.UI.Pages
 
                 if (!_editingInvoice.IsPaid)
                 {
-                    decimal diff = newTotal - _originalTotalAmount; // از متغیر اصلی استفاده می‌کنیم
+                    decimal diff = newTotal - _originalTotalAmount;
                     var customer = _context.Customers.Find(_editingInvoice.CustomerId);
                     if (customer != null) customer.Balance += diff;
                 }
 
                 _context.SaveChanges();
+                
+                // بستن فرم ویرایش
                 DetailsDialog.IsOpen = false;
+                
                 LoadOrders();
-                MessageBox.Show("تغییرات با موفقیت اعمال شد.", "موفق", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                // نمایش پیام موفقیت با دیالوگ جدید
+                ShowMessage("تغییرات با موفقیت اعمال شد.", MessageType.Success);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("خطا در ذخیره تغییرات: " + ex.Message);
+                // نمایش خطا روی فرم (چون PageRootDialog بالاتر است، روی فرم دیده میشود)
+                ShowMessage("خطا در ذخیره تغییرات: " + ex.Message, MessageType.Error);
             }
         }
 
@@ -385,25 +404,40 @@ namespace FactorApp.UI.Pages
             }
         }
 
-        private void BtnDelete_Click(object sender, RoutedEventArgs e)
+   private async void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
             if (DataGridOrders.SelectedItem is Invoice selectedInvoice)
             {
-                if (MessageBox.Show("آیا از حذف این فاکتور مطمئن هستید؟", "حذف", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                // ساخت دیالوگ سوال
+                var dialog = new ConfirmDialog(
+                    $"آیا از حذف فاکتور شماره {selectedInvoice.InvoiceNumber} مطمئن هستید؟\nاین عملیات غیرقابل بازگشت است.", 
+                    "حذف فاکتور", 
+                    ConfirmType.Delete
+                );
+
+                // نمایش و گرفتن نتیجه
+                var result = await DialogHost.Show(dialog, "PageRootDialog");
+
+                if (result is bool confirm && confirm)
                 {
                     var invoice = _context.Invoices.Find(selectedInvoice.Id);
                     if (invoice != null)
                     {
                         var items = _context.InvoiceItems.Where(x => x.InvoiceId == invoice.Id).ToList();
                         _context.InvoiceItems.RemoveRange(items);
+                        
                         if (!invoice.IsPaid)
                         {
                             var customer = _context.Customers.Find(invoice.CustomerId);
                             if (customer != null) customer.Balance -= invoice.FinalAmount;
                         }
+                        
                         _context.Invoices.Remove(invoice);
                         _context.SaveChanges();
                         LoadOrders();
+                        
+                        // پیام موفقیت (اختیاری)
+                        // ShowMessage("فاکتور حذف شد.", MessageType.Success);
                     }
                 }
             }

@@ -2,7 +2,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using AutoUpdaterDotNET;
@@ -24,84 +26,138 @@ namespace FactorApp.UI
 
     public partial class LoadingWindow : Window
     {
-        // رفع خطای CS8618: اضافه کردن علامت سوال (Nullable)
         public event Action<LoadingResult, User?>? OperationCompleted;
-
-        // >>> رفع خطای CS0103: تعریف متغیر در سطح کلاس <<<
         private User? _loggedInUser = null;
+        private CancellationTokenSource _cts;
 
         public LoadingWindow()
         {
             InitializeComponent();
+            _cts = new CancellationTokenSource();
 
-            // رفع خطای CS8602 (احتمال نال بودن ورژن)
             var version = Assembly.GetExecutingAssembly().GetName().Version;
-            if (version != null)
-            {
-                TxtVersion.Text = $"v{version.Major}.{version.Minor}.{version.Build}";
-            }
-            else
-            {
-                TxtVersion.Text = "v1.0.0";
-            }
+            TxtVersion.Text = version != null ? $"v{version.Major}.{version.Minor}.{version.Build}" : "v1.0.0";
 
             Loaded += LoadingWindow_Loaded;
         }
 
         private async void LoadingWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            TxtStatus.Text = "در حال بارگذاری...";
-            await Task.Delay(500);
-            TxtStatus.Text = "بررسی لایسنس...";
-            await Task.Delay(500);
-
-            // >>>>> بررسی لایسنس <<<<<
-            if (!CheckLicense())
+            try
             {
-                // نمایش پنجره فعال‌سازی
-                this.Hide();
-                var activation = new ActivationWindow();
-                activation.ShowDialog();
+                // مرحله 1: بررسی لایسنس
+                TxtStatus.Text = "بررسی اعتبار لایسنس...";
+                await Task.Delay(100); // وقفه کوتاه برای دیدن متن توسط کاربر
 
-                if (activation.IsActivated)
+                if (!CheckLicense())
                 {
-                    this.Show(); // اگر فعال شد، لودینگ ادامه یابد
+                    this.Hide();
+                    var activation = new ActivationWindow();
+                    activation.ShowDialog();
+
+                    if (activation.IsActivated)
+                    {
+                        this.Show();
+                    }
+                    else
+                    {
+                        Application.Current.Shutdown();
+                        return;
+                    }
                 }
-                else
+
+                // مرحله 2: بررسی دیتابیس (جداگانه نمایش داده شود)
+                TxtStatus.Text = "بررسی و اتصال به پایگاه داده...";
+                bool dbSuccess = await EnsureDatabaseAndAdminUserAsync();
+                
+                if (!dbSuccess)
                 {
-                    Application.Current.Shutdown(); // اگر ضربدر زد، برنامه بسته شود
+                    Application.Current.Shutdown();
                     return;
                 }
-            }
-            TxtStatus.Text = "بررسی اطلاعات پایه...";
-            bool dbSuccess = await Task.Run(() => EnsureDatabaseAndAdminUser());
 
-            if (!dbSuccess)
+                // مرحله 3: بررسی آپدیت (جداگانه نمایش داده شود)
+                TxtStatus.Text = "بررسی نسخه اپلیکیشن...";
+                await CheckForUpdateAsync(_cts.Token);
+            }
+            catch (Exception ex)
             {
-                Application.Current.Shutdown();
+                Debug.WriteLine("Loading Critical Error: " + ex.Message);
+                PerformAutoLoginAndFinish();
+            }
+        }
+
+        // --- متد بررسی آپدیت با تایم‌اوت و پینگ ---
+        private async Task CheckForUpdateAsync(CancellationToken token)
+        {
+            // تست سریع اینترنت (زیر 1 ثانیه)
+            // اگر نت نباشد، سریع رد میشود تا کاربر معطل نشود
+            if (!IsInternetAvailable())
+            {
+                Debug.WriteLine("No Internet. Skipping Update.");
+                PerformAutoLoginAndFinish();
                 return;
             }
 
-            TxtStatus.Text = "بررسی نسخه نرم‌افزار...";
-            CheckForUpdate();
-        }
-
-        private void CheckForUpdate()
-        {
             try
             {
+                var tcs = new TaskCompletionSource<bool>();
                 AutoUpdater.RunUpdateAsAdmin = false;
+                
+                // هندل کردن ایونت آپدیت
+                void Handler(UpdateInfoEventArgs args)
+                {
+                    // بلافاصله ایونت را جدا میکنیم
+                    AutoUpdater.CheckForUpdateEvent -= Handler;
 
-                // اطمینان از اینکه ایونت فقط یکبار متصل شود
-                AutoUpdater.CheckForUpdateEvent -= AutoUpdater_OnCheckForUpdateEvent;
-                AutoUpdater.CheckForUpdateEvent += AutoUpdater_OnCheckForUpdateEvent;
+                    if (args.Error == null && args.IsUpdateAvailable)
+                    {
+                        // آپدیت پیدا شد -> دانلود شروع شود
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            TxtStatus.Text = "نسخه جدید یافت شد...";
+                            TxtStatus.Foreground = System.Windows.Media.Brushes.Cyan;
+                            StartCustomDownload(args.DownloadURL);
+                        });
+                        // اینجا Task تمام میشود اما متد دانلود ادامه میدهد
+                        tcs.TrySetResult(true); 
+                    }
+                    else
+                    {
+                        // آپدیت نیست -> ادامه به لاگین
+                        tcs.TrySetResult(false);
+                    }
+                }
 
-                // >> رفع مشکل کش شدن گیت‌هاب <<
-                // اضافه کردن یک عدد تصادفی (زمان فعلی) به انتهای لینک باعث می‌شود همیشه فایل جدید دانلود شود
+                AutoUpdater.CheckForUpdateEvent += Handler;
+
                 string baseUpdateUrl = "https://raw.githubusercontent.com/mohammadrezahaghi/FaktorApp/main/update.xml";
                 string updateUrl = $"{baseUpdateUrl}?t={DateTime.Now.Ticks}";
 
                 AutoUpdater.Start(updateUrl);
+
+                // *** تایم‌اوت هوشمند 4 ثانیه‌ای ***
+                var timeoutTask = Task.Delay(4000, token);
+                var completedTask = await Task.WhenAny(tcs.Task, timeoutTask);
+
+                if (completedTask == timeoutTask)
+                {
+                    // اگر طول کشید (اینترنت کند)، بیخیال شو و برو تو برنامه
+                    Debug.WriteLine("Update Check Timed Out.");
+                    AutoUpdater.CheckForUpdateEvent -= Handler;
+                    PerformAutoLoginAndFinish();
+                }
+                else
+                {
+                    // نتیجه آمد
+                    bool updateFound = await tcs.Task;
+                    if (!updateFound)
+                    {
+                        // آپدیتی نبود، برو تو برنامه
+                        PerformAutoLoginAndFinish();
+                    }
+                    // اگر آپدیت بود، متد دانلود اجرا شده و صفحه باز میماند
+                }
             }
             catch
             {
@@ -109,54 +165,52 @@ namespace FactorApp.UI
             }
         }
 
-        private async void AutoUpdater_OnCheckForUpdateEvent(UpdateInfoEventArgs args)
+        // پینگ فوق سریع (تایم اوت 1.5 ثانیه)
+        private bool IsInternetAvailable()
         {
-            AutoUpdater.CheckForUpdateEvent -= AutoUpdater_OnCheckForUpdateEvent;
-
-            if (args.Error != null)
+            try
             {
-                PerformAutoLoginAndFinish();
-                return;
+                using (var ping = new Ping())
+                {
+                    var reply = ping.Send("8.8.8.8", 1500); 
+                    return reply.Status == IPStatus.Success;
+                }
             }
-
-            if (args.IsUpdateAvailable)
+            catch
             {
-                TxtStatus.Text = "در حال بروزرسانی...";
-                TxtStatus.Foreground = System.Windows.Media.Brushes.Cyan;
-                StartCustomDownload(args.DownloadURL);
-            }
-            else
-            {
-                TxtStatus.Text = "آماده‌سازی محیط کاربری...";
-                TxtStatus.Foreground = System.Windows.Media.Brushes.White;
-                await Task.Delay(800);
-                PerformAutoLoginAndFinish();
+                return false;
             }
         }
 
+        // متد خالی برای جلوگیری از ارور کامپایل احتمالی
+        private void AutoUpdater_OnCheckForUpdateEvent(UpdateInfoEventArgs args) { }
+
         private void StartCustomDownload(string url)
         {
-            PrgUpdate.Visibility = Visibility.Visible;
-            TxtPercent.Visibility = Visibility.Visible;
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                PrgUpdate.Visibility = Visibility.Visible;
+                TxtPercent.Visibility = Visibility.Visible;
+                TxtStatus.Text = "در حال دانلود آپدیت...";
+            });
 
             try
             {
                 string tempPath = Path.Combine(Path.GetTempPath(), "FactorApp_Setup.exe");
                 if (File.Exists(tempPath)) File.Delete(tempPath);
 
-                // رفع هشدار WebClient Obsolete با نادیده گرفتن آن (ساده‌ترین راه برای الان)
 #pragma warning disable SYSLIB0014
                 WebClient webClient = new WebClient();
 #pragma warning restore SYSLIB0014
 
                 webClient.DownloadProgressChanged += (s, e) =>
                 {
-                    PrgUpdate.Value = e.ProgressPercentage;
-                    TxtPercent.Text = $"{e.ProgressPercentage}%";
-                    TxtStatus.Text = $"در حال دانلود بروزرسانی... ({e.ProgressPercentage}%)";
-
-                    if (e.ProgressPercentage > 95)
-                        TxtStatus.Text = "در حال آماده‌سازی نصب...";
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        PrgUpdate.Value = e.ProgressPercentage;
+                        TxtPercent.Text = $"{e.ProgressPercentage}%";
+                        TxtStatus.Text = $"دانلود... ({e.ProgressPercentage}%)";
+                    });
                 };
 
                 webClient.DownloadFileCompleted += (s, e) =>
@@ -179,7 +233,7 @@ namespace FactorApp.UI
 
         private void RunInstaller(string path)
         {
-            TxtStatus.Text = "نصب بروز رسانی...";
+            Application.Current.Dispatcher.Invoke(() => TxtStatus.Text = "نصب نسخه جدید...");
             try
             {
                 Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
@@ -191,9 +245,18 @@ namespace FactorApp.UI
             }
         }
 
+        // --- ورود خودکار ---
         private async void PerformAutoLoginAndFinish()
         {
-            TxtStatus.Text = "بررسی ورود خودکار...";
+            if (_cts.IsCancellationRequested) return;
+            _cts.Cancel();
+
+            Application.Current.Dispatcher.Invoke(() => 
+            {
+                TxtStatus.Text = "ورود به سیستم..."; // متن نهایی
+                PrgUpdate.Visibility = Visibility.Collapsed;
+                TxtPercent.Visibility = Visibility.Collapsed;
+            });
 
             bool loginSuccess = false;
 
@@ -201,13 +264,12 @@ namespace FactorApp.UI
             {
                 if (CredentialsHelper.GetSavedCredentials(out string savedUser, out string savedPass))
                 {
-                    // حالا متغیر _loggedInUser که بالا تعریف کردیم اینجا استفاده می‌شود
                     loginSuccess = TryAutoLogin(savedUser, savedPass, out _loggedInUser);
                 }
             });
 
-            TxtStatus.Text = "اجرای برنامه...";
-            await Task.Delay(300);
+            // مکث خیلی کوتاه برای زیبایی UI
+            await Task.Delay(150);
 
             if (loginSuccess && _loggedInUser != null)
             {
@@ -246,63 +308,59 @@ namespace FactorApp.UI
             return false;
         }
 
-        private bool EnsureDatabaseAndAdminUser()
+        // چک کردن دیتابیس (Asynchronous)
+        private Task<bool> EnsureDatabaseAndAdminUserAsync()
         {
-            try
+            return Task.Run(() =>
             {
-                using (var context = new AppDbContext())
+                try
                 {
-                    context.Database.EnsureCreated();
-
-                    // 1. اطمینان از وجود اطلاعات پایه فروشگاه
-                    if (!context.StoreInfos.Any())
+                    using (var context = new AppDbContext())
                     {
-                        context.StoreInfos.Add(new StoreInfo
+                        context.Database.EnsureCreated();
+
+                        if (!context.StoreInfos.Any())
                         {
-                            StoreName = "فروشگاه من",
-                            IsDarkMode = false,
-                            Address = "آدرس پیش فرض",
-                            PhoneNumber = "-",
-                            FooterText = "توضیحات فاکتور"
-                        });
-                    }
+                            context.StoreInfos.Add(new StoreInfo
+                            {
+                                StoreName = "فروشگاه من",
+                                IsDarkMode = false,
+                                Address = "آدرس پیش فرض",
+                                PhoneNumber = "-",
+                                FooterText = "توضیحات فاکتور"
+                            });
+                        }
 
-                    // 2. اطمینان از وجود حداقل یک کاربر مدیر (رفع مشکل ورود اولیه)
-                    if (!context.Users.Any())
-                    {
-                        // *** FIX: Changed byte[] to string to match your PasswordHelper and User model ***
-                        string passwordHash;
-                        string passwordSalt;
-
-                        // ایجاد هش پسورد برای 'admin'
-                        PasswordHelper.CreatePasswordHash("admin", out passwordHash, out passwordSalt);
-
-                        context.Users.Add(new User
+                        if (!context.Users.Any())
                         {
-                            Username = "admin",
-                            PasswordHash = passwordHash, // Now assigning string to string
-                            PasswordSalt = passwordSalt, // Now assigning string to string
-                            FullName = "مدیر سیستم",
-                            IsActive = true,
-                            // Role = "Admin"
-                        });
-                    }
+                            string passwordHash;
+                            string passwordSalt;
+                            PasswordHelper.CreatePasswordHash("admin", out passwordHash, out passwordSalt);
 
-                    context.SaveChanges();
+                            context.Users.Add(new User
+                            {
+                                Username = "admin",
+                                PasswordHash = passwordHash,
+                                PasswordSalt = passwordSalt,
+                                FullName = "مدیر سیستم",
+                                IsActive = true,
+                            });
+                        }
+                        context.SaveChanges();
+                    }
+                    return true;
                 }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Application.Current.Dispatcher.Invoke(() =>
+                catch (Exception ex)
                 {
-                    MessageBox.Show($"خطای پایگاه داده: {ex.Message}\n\nلطفا با پشتیبانی تماس بگیرید.", "خطا", MessageBoxButton.OK, MessageBoxImage.Error);
-                });
-                return false;
-            }
-
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        MessageBox.Show($"خطای پایگاه داده: {ex.Message}\n\nلطفا با پشتیبانی تماس بگیرید.", "خطا", MessageBoxButton.OK, MessageBoxImage.Error);
+                    });
+                    return false;
+                }
+            });
         }
-        // متد بررسی وجود فایل لایسنس معتبر
+
         private bool CheckLicense()
         {
             try

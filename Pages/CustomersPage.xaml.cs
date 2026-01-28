@@ -1,11 +1,14 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Text.RegularExpressions;
 using FactorApp.UI.Data;
 using FactorApp.UI.Models;
 using MaterialDesignThemes.Wpf;
-using MessageBox = System.Windows.MessageBox;
 using Button = System.Windows.Controls.Button;
+using FactorApp.UI.UserControls; // برای دسترسی به MessageDialog و ConfirmDialog
+
 namespace FactorApp.UI.Pages
 {
     public partial class CustomersPage : Page
@@ -33,22 +36,85 @@ namespace FactorApp.UI.Pages
             }
         }
 
-        // باز کردن دیالوگ برای افزودن
+        // =========================================================
+        // متد نمایش پیام سفارشی (روی لایه بیرونی)
+        // =========================================================
+        private async void ShowMessage(string message, MessageType type = MessageType.Error)
+        {
+            var view = new MessageDialog(message, type);
+            // نمایش روی دیالوگ اصلی صفحه (PageRootDialog)
+            await DialogHost.Show(view, "PageRootDialog");
+        }
+
+        // =========================================================
+        // متد کمکی: استانداردسازی شماره تلفن
+        // =========================================================
+        private string NormalizePhoneNumber(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return "";
+
+            string digitsOnly = new string(input.Where(char.IsDigit).ToArray());
+
+            if (digitsOnly.StartsWith("98"))
+            {
+                if (digitsOnly.Length > 2) digitsOnly = "0" + digitsOnly.Substring(2);
+            }
+            else if (digitsOnly.StartsWith("9") && digitsOnly.Length == 10)
+            {
+                digitsOnly = "0" + digitsOnly;
+            }
+            else if (digitsOnly.StartsWith("0098"))
+            {
+                if (digitsOnly.Length > 4) digitsOnly = "0" + digitsOnly.Substring(4);
+            }
+
+            return digitsOnly;
+        }
+
+        private void CustInputPhone_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
+        private void CustInputPhone_Pasting(object sender, DataObjectPastingEventArgs e)
+        {
+            e.CancelCommand();
+
+            if (e.DataObject.GetDataPresent(typeof(string)))
+            {
+                string rawText = (string)e.DataObject.GetData(typeof(string));
+                string cleanText = NormalizePhoneNumber(rawText);
+                CustInputPhone.Text = cleanText;
+                CustInputPhone.CaretIndex = CustInputPhone.Text.Length;
+            }
+        }
+
+        private void BtnPastePhone_Click(object sender, RoutedEventArgs e)
+        {
+            if (System.Windows.Clipboard.ContainsText())
+            {
+                string clipboardText = System.Windows.Clipboard.GetText();
+                CustInputPhone.Text = NormalizePhoneNumber(clipboardText);
+                CustInputPhone.Focus();
+                CustInputPhone.CaretIndex = CustInputPhone.Text.Length;
+            }
+        }
+
         private void BtnAdd_Click(object sender, RoutedEventArgs e)
         {
             _editingCustomer = null;
             TxtDialogTitle.Text = "افزودن مشتری جدید";
+
             CustInputName.Clear();
             CustInputPhone.Clear();
             CustInputAddress.Clear();
             CustInputBalance.Text = "0";
 
-            // تغییر مهم: باز کردن مستقیم دیالوگ
+            // باز کردن دیالوگ فرم (داخلی)
             CustomerDialog.IsOpen = true;
         }
 
-        // باز کردن دیالوگ برای ویرایش
-        // دکمه ویرایش
         private void BtnEdit_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.DataContext is Customer customer)
@@ -61,21 +127,21 @@ namespace FactorApp.UI.Pages
                 CustInputAddress.Text = customer.Address;
                 CustInputBalance.Text = customer.Balance.ToString("N0").Replace(",", "");
 
-                // تغییر مهم: باز کردن مستقیم دیالوگ
+                // باز کردن دیالوگ فرم (داخلی)
                 CustomerDialog.IsOpen = true;
             }
         }
 
-        // ذخیره (Add یا Update)
-        // دکمه ذخیره
         private void BtnSaveCustomer_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(CustInputName.Text))
             {
-                MessageBox.Show("نام مشتری الزامی است.");
+                // استفاده از دیالوگ سفارشی به جای MessageBox
+                ShowMessage("نام مشتری الزامی است.", MessageType.Warning);
                 return;
             }
 
+            string cleanPhone = NormalizePhoneNumber(CustInputPhone.Text);
             decimal.TryParse(CustInputBalance.Text.Replace(",", ""), out decimal balance);
 
             using (var context = new AppDbContext())
@@ -85,7 +151,7 @@ namespace FactorApp.UI.Pages
                     var newCustomer = new Customer
                     {
                         Name = CustInputName.Text,
-                        PhoneNumber = CustInputPhone.Text,
+                        PhoneNumber = cleanPhone,
                         Address = CustInputAddress.Text,
                         Balance = balance
                     };
@@ -97,7 +163,7 @@ namespace FactorApp.UI.Pages
                     if (customerToUpdate != null)
                     {
                         customerToUpdate.Name = CustInputName.Text;
-                        customerToUpdate.PhoneNumber = CustInputPhone.Text;
+                        customerToUpdate.PhoneNumber = cleanPhone;
                         customerToUpdate.Address = CustInputAddress.Text;
                         customerToUpdate.Balance = balance;
                     }
@@ -105,18 +171,28 @@ namespace FactorApp.UI.Pages
                 context.SaveChanges();
             }
 
-            // تغییر مهم: بستن مستقیم دیالوگ
+            // بستن فرم
             CustomerDialog.IsOpen = false;
             LoadData();
+            
+            // ShowMessage("اطلاعات با موفقیت ثبت شد.", MessageType.Success);
         }
 
-        // حذف مشتری
-        private void BtnDelete_Click(object sender, RoutedEventArgs e)
+        private async void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.DataContext is Customer customer)
             {
-                var result = MessageBox.Show($"با حذف مشتری '{customer.Name}'، تمام فاکتورهای او نیز حذف می‌شوند.\nآیا مطمئن هستید؟", "اخطار حذف", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (result == MessageBoxResult.Yes)
+                // دیالوگ حذف سفارشی
+                var dialog = new ConfirmDialog(
+                    $"با حذف مشتری '{customer.Name}'، تمام فاکتورهای او نیز حذف می‌شوند.\nآیا مطمئن هستید؟", 
+                    "اخطار حذف", 
+                    ConfirmType.Delete
+                );
+
+                // باز کردن روی لایه بیرونی
+                var result = await DialogHost.Show(dialog, "PageRootDialog");
+
+                if (result is bool confirm && confirm)
                 {
                     using (var context = new AppDbContext())
                     {

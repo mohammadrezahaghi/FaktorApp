@@ -4,11 +4,11 @@ namespace FactorApp.UI.Helpers
 {
     public static class NumberToText
     {
-        private static readonly string[] Yakan = { "", "یک", "دو", "سه", "چهار", "پنج", "شش", "هفت", "هشت", "نه" };
-        private static readonly string[] Dahgan = { "", "ده", "بیست", "سی", "چهل", "پنجاه", "شصت", "هفتاد", "هشتاد", "نود" };
-        private static readonly string[] Dahyek = { "ده", "یازده", "دوازده", "سیزده", "چهارده", "پانزده", "شانزده", "هفده", "هجده", "نوزده" };
-        private static readonly string[] Sadgan = { "", "صد", "دویست", "سیصد", "چهارصد", "پانصد", "ششصد", "هفتصد", "هشتصد", "نهصد" };
-        private static readonly string[] Basex = { "", "هزار", "میلیون", "میلیارد", "تریلیون" };
+        private static readonly string[] Yakan = { "", "یــــــک", "دو", "ســـــه", "چهــــــار", "پنــــــج", "شــــش", "هفـــــت", "هشــــــت", "نـــه" };
+        private static readonly string[] Dahgan = { "", "ده", "بیســــت", "ســـــی", "چـــــهل", "پنــــجاه", "شصـــــت", "هفـــتاد", "هشـــتاد", "نـــود" };
+        private static readonly string[] Dahyek = { "ده", "یــــازده", "دوازده", "ســـیزده", "چهـــــارده", "پانـــزده", "شانــــزده", "هفــــده", "هجــــده", "نـــوزده" };
+        private static readonly string[] Sadgan = { "", "صــــد", "دویــــست", "ســــیصـد", "چـهارصــد", "پانـــصـد", "ششصـــد", "هفتصـــد", "هشتصـــد", "نهصـــد" };
+        private static readonly string[] Basex = { "", "هــــزار", "مــیلیـون", "میـلیـارد", "تریلیـــون" };
 
         public static string ToString(long number)
         {

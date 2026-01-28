@@ -1,6 +1,7 @@
 using System.Windows.Controls;
 using System.Windows.Media;
 using MaterialDesignThemes.Wpf;
+using Brushes = System.Windows.Media.Brushes;
 
 namespace FactorApp.UI.UserControls
 {
@@ -8,6 +9,7 @@ namespace FactorApp.UI.UserControls
     public enum ConfirmType
     {
         Info,       // معمولی (سبز/آبی)
+        Success,
         Warning,    // هشدار (زرد/نارنجی)
         Delete,     // حذف (قرمز)
         Logout,     // خروج (قرمز تیره)
@@ -58,7 +60,11 @@ namespace FactorApp.UI.UserControls
                     iconKind = PackIconKind.InformationVariant;
                     confirmText = "تایید";
                     break;
-
+                case ConfirmType.Success:
+                    iconKind = PackIconKind.CheckCircle;
+                    mainColor= Brushes.Green;
+                    confirmText = "چاپ شود";
+                    break;
                 default: // Question
                     mainColor = (SolidColorBrush)brushConverter.ConvertFrom("#00C49F"); // سبز
                     iconKind = PackIconKind.QuestionMark;
