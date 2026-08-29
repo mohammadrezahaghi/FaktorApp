@@ -1,15 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <item>
-    <version>1.3.3.0</version>
-    <url>https://github.com/mohammadrezahaghi/FaktorApp/releases/download/v1.3.3.0/ShayanPlus_v1.3.3.exe</url>
-    <changelog>https://github.com/mohammadrezahaghi/FaktorApp/releases/tag/v1.3.3</changelog>
-    <mandatory>false</mandatory>
-</item>
-
-
-
-<?xml version="1.0" encoding="UTF-8"?>
-<item>
     <version>2.0.0.0</version>
 
     <url>
