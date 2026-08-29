@@ -5,3 +5,24 @@
     <changelog>https://github.com/mohammadrezahaghi/FaktorApp/releases/tag/v1.3.3</changelog>
     <mandatory>false</mandatory>
 </item>
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<item>
+    <version>2.0.0.0</version>
+
+    <url>
+        https://github.com/mohammadrezahaghi/FaktorApp/releases/download/v2.0.0/ShayanPlus_v2.0.0.exe
+    </url>
+
+    <changelog>
+        https://github.com/mohammadrezahaghi/FaktorApp/releases/tag/v2.0.0
+    </changelog>
+
+    <mandatory>false</mandatory>
+
+    <checksum algorithm="SHA256">
+        EA6B4F98D23799707E28F319AD4967EA64765D831286E58C58C4645670C4B31D
+    </checksum>
+</item>
